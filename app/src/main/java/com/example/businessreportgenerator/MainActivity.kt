@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
             BusinessReportGeneratorTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.White // 애플 스타일 배경색
+                    color = Color.White
                 ) {
                     PortfolioScreen()
                 }
