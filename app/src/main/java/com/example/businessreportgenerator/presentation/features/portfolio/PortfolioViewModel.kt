@@ -1,4 +1,3 @@
-// presentation/features/portfolio/PortfolioViewModel.kt
 package com.example.businessreportgenerator.presentation.features.portfolio
 
 import androidx.lifecycle.ViewModel

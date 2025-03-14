@@ -1,4 +1,3 @@
-// MainActivity.kt
 package com.example.businessreportgenerator
 
 import android.os.Bundle
@@ -8,9 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.example.businessreportgenerator.presentation.features.portfolio.PortfolioScreen
 import com.example.businessreportgenerator.ui.theme.BusinessReportGeneratorTheme
-import org.koin.androidx.compose.koinViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
             BusinessReportGeneratorTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color.White // 애플 스타일 배경색
                 ) {
                     PortfolioScreen()
                 }
