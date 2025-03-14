@@ -12,22 +12,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -42,7 +40,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.businessreportgenerator.domain.model.Asset
 import com.example.businessreportgenerator.domain.model.AssetType
 import com.example.businessreportgenerator.presentation.common.PieChart
 import com.example.businessreportgenerator.presentation.common.PieChartData
@@ -52,7 +49,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortfolioScreen(
-    viewModel: PortfolioViewModel = viewModel()
+    viewModel: PortfolioViewModel = viewModel(),
+    modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -79,8 +77,12 @@ fun PortfolioScreen(
 
     val formatter = NumberFormat.getCurrencyInstance(Locale.KOREA)
 
-    Scaffold(
-        topBar = {
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = Color(0xFFF8F9FA) // 애플 스타일 배경색 (밝은 회색)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top App Bar
             TopAppBar(
                 title = {
                     Text(
@@ -94,18 +96,13 @@ fun PortfolioScreen(
                     titleContentColor = Color.Black
                 )
             )
-        }
-    ) { padding ->
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            color = Color(0xFFF8F9FA) // 애플 스타일 배경색 (밝은 회색)
-        ) {
+
+            // 메인 콘텐츠 영역
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp), // 하단 여백 추가
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 총 포트폴리오 가치
@@ -113,7 +110,7 @@ fun PortfolioScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 16.dp),
+                            .padding(16.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -143,12 +140,12 @@ fun PortfolioScreen(
                     }
                 }
 
-                // 파이 차트
+                // 파이 차트 및 종목 정보
                 if (pieChartData.isNotEmpty()) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -168,9 +165,10 @@ fun PortfolioScreen(
                                     .padding(horizontal = 24.dp, vertical = 8.dp)
                             )
 
+                            // 향상된 파이 차트 (자산 이름이 표시되는 버전)
                             PieChart(
                                 data = pieChartData,
-                                showLegend = true
+                                assets = state.assets
                             )
                         }
                     }
@@ -178,14 +176,15 @@ fun PortfolioScreen(
                     EmptyPortfolioCard()
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // 종목 추가 버튼
                 Button(
                     onClick = { viewModel.showAddAssetDialog() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(56.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF007AFF),
@@ -207,6 +206,8 @@ fun PortfolioScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             // 자산 추가 대화상자
@@ -226,7 +227,7 @@ fun EmptyPortfolioCard() {
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .padding(vertical = 16.dp),
+            .padding(16.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
@@ -255,92 +256,6 @@ fun EmptyPortfolioCard() {
                 color = Color.Gray,
                 textAlign = TextAlign.Center
             )
-        }
-    }
-}
-
-@Composable
-fun AssetListItem(
-    asset: Asset,
-    totalValue: Double
-) {
-    val proportion = if (totalValue > 0) (asset.purchasePrice / totalValue) * 100 else 0.0
-    val formatter = NumberFormat.getCurrencyInstance(Locale.KOREA)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 자산 유형 표시용 색상 원
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(
-                            when (asset.type) {
-                                AssetType.REAL_ESTATE -> Color(0xFF007AFF) // 애플 블루
-                                AssetType.STOCK -> Color(0xFFFF9500)      // 애플 오렌지
-                                AssetType.ETF -> Color(0xFF4CD964)        // 애플 그린
-                                AssetType.BOND -> Color(0xFFFF2D55)       // 애플 핑크
-                                AssetType.CRYPTO -> Color(0xFF5856D6)     // 애플 퍼플
-                            }
-                        )
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        text = asset.name,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Text(
-                        text = when(asset.type) {
-                            AssetType.REAL_ESTATE -> "부동산"
-                            AssetType.STOCK -> "주식"
-                            AssetType.ETF -> "ETF"
-                            AssetType.BOND -> "채권"
-                            AssetType.CRYPTO -> "코인"
-                        },
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-            }
-
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = formatter.format(asset.purchasePrice),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "${proportion.toInt()}%",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            }
         }
     }
 }

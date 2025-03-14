@@ -64,6 +64,7 @@ dependencies {
 
     // Jetpack Navigation for Compose
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(libs.vision.internal.vkp)
 
     // 테스트
     testImplementation(libs.junit)
