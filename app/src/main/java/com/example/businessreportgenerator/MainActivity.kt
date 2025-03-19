@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.example.businessreportgenerator.presentation.navigation.MainScreen
+import com.example.businessreportgenerator.presentation.navigation.AppEntryPoint
 import com.example.businessreportgenerator.ui.theme.BusinessReportGeneratorTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,7 +20,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color.White
                 ) {
-                    MainScreen()
+                    // 온보딩을 처리하는 진입점
+                    AppEntryPoint()
                 }
             }
         }
