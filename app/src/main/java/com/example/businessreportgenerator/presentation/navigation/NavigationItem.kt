@@ -2,12 +2,10 @@ package com.example.businessreportgenerator.presentation.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,7 +27,6 @@ import com.example.businessreportgenerator.presentation.features.analyst.Analyst
 import com.example.businessreportgenerator.presentation.features.feed.FeedScreen
 import com.example.businessreportgenerator.presentation.features.news.NewsScreen
 import com.example.businessreportgenerator.presentation.features.portfolio.PortfolioScreen
-import com.google.android.libraries.intelligence.acceleration.Analytics
 
 // 네비게이션 항목
 sealed class NavigationItem(val route: String, val icon: ImageVector, val title: String) {
