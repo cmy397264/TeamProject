@@ -24,10 +24,6 @@ class OnboardingViewModel : ViewModel() {
         _state.value = _state.value.copy(currentStep = _state.value.currentStep - 1)
     }
 
-    fun getCurrentStep() : Int {
-        return _state.value.currentStep
-    }
-
     fun setUserDataName(name : String) {
         _state.value = _state.value.copy(userData = _state.value.userData.copy(name = name))
     }
