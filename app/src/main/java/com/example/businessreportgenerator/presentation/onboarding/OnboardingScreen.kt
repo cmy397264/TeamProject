@@ -35,8 +35,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,7 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 // 사용자 데이터 모델
 data class UserData(
@@ -81,13 +81,13 @@ val reportComplexityOptions = listOf(
 // 요일 항목
 val daysOfWeek = listOf("월", "화", "수", "목", "금", "토", "일")
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(
     onOnboardingComplete: (UserData) -> Unit
 ) {
-    var currentStep by remember { mutableIntStateOf(0) }
-    var userData by remember { mutableStateOf(UserData()) }
+    val viewModel : OnboardingViewModel = viewModel()
+    val currentStep = viewModel.state.collectAsState().value.currentStep
+    val userData = viewModel.state.collectAsState().value.userData
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -99,25 +99,17 @@ fun OnboardingScreen(
                     currentStep = currentStep,
                     onNextClick = {
                         if (currentStep < 5) {
-                            currentStep++
+                            viewModel.increaseCurrentStep()
                         } else {
                             onOnboardingComplete(userData)
                         }
                     },
                     onBackClick = {
                         if (currentStep > 0) {
-                            currentStep--
+                            viewModel.decreaseCurrentStep()
                         }
                     },
-                    isNextEnabled = when (currentStep) {
-                        0 -> userData.name.isNotBlank()
-                        1 -> userData.age > 0
-                        2 -> userData.interests.isNotEmpty()
-                        3 -> userData.riskTolerance.isNotBlank()
-                        4 -> userData.reportComplexity.isNotBlank()
-                        5 -> userData.reportDays.isNotEmpty()
-                        else -> true
-                    }
+                    isNextEnabled = viewModel.isStepVaild()
                 )
             }
         ) { paddingValues ->
@@ -141,29 +133,27 @@ fun OnboardingScreen(
                 when (currentStep) {
                     0 -> NameInputStep(
                         name = userData.name,
-                        onNameChange = { userData = userData.copy(name = it) }
+                        onNameChange = { viewModel.setUserDataName(it) }
                     )
                     1 -> AgeInputStep(
                         age = if (userData.age > 0) userData.age.toString() else "",
-                        onAgeChange = {
-                            userData = userData.copy(age = it.toIntOrNull() ?: 0)
-                        }
+                        onAgeChange = { viewModel.setUserDataAge(it.toIntOrNull() ?: 0) }
                     )
                     2 -> InterestsSelectionStep(
                         selectedInterests = userData.interests,
-                        onInterestsChange = { userData = userData.copy(interests = it) }
+                        onInterestsChange = { viewModel.setUserDataInterests(it) }
                     )
                     3 -> RiskToleranceStep(
                         selectedRiskTolerance = userData.riskTolerance,
-                        onRiskToleranceChange = { userData = userData.copy(riskTolerance = it) }
+                        onRiskToleranceChange = { viewModel.setUserDataRiskTolerance(it) }
                     )
                     4 -> ReportComplexityStep(
                         selectedComplexity = userData.reportComplexity,
-                        onComplexityChange = { userData = userData.copy(reportComplexity = it) }
+                        onComplexityChange = { viewModel.setUserDataReportComplexity(it) }
                     )
                     5 -> ReportDaysStep(
                         selectedDays = userData.reportDays,
-                        onDaysChange = { userData = userData.copy(reportDays = it) }
+                        onDaysChange = { viewModel.setUserDataReportDays(it) }
                     )
                 }
             }
