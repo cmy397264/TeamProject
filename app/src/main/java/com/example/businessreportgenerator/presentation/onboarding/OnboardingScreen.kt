@@ -30,10 +30,10 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -86,8 +86,9 @@ fun OnboardingScreen(
     onOnboardingComplete: (UserData) -> Unit
 ) {
     val viewModel : OnboardingViewModel = viewModel()
-    val currentStep = viewModel.state.collectAsState().value.currentStep
-    val userData = viewModel.state.collectAsState().value.userData
+    val state by viewModel.state.collectAsState()
+    val currentStep = state.currentStep
+    val userData = state.userData
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -271,7 +272,7 @@ fun NameInputStep(
             label = { Text("이름 또는 닉네임") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF007AFF),
                 unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
                 cursorColor = Color(0xFF007AFF)
@@ -317,7 +318,7 @@ fun AgeInputStep(
             label = { Text("나이") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF007AFF),
                 unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
                 cursorColor = Color(0xFF007AFF)
@@ -456,7 +457,7 @@ fun RiskToleranceStep(
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF007AFF),
                     unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
                     cursorColor = Color(0xFF007AFF)
@@ -578,7 +579,7 @@ fun ReportComplexityStep(
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF007AFF),
                     unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
                     cursorColor = Color(0xFF007AFF)
