@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.businessreportgenerator.presentation.common.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -77,20 +78,7 @@ fun NewsScreen(modifier: Modifier = Modifier) {
             ) {
                 Column {
                     // 상단 헤더 제목
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFF007AFF))
-                            .padding(horizontal = 20.dp, vertical = 16.dp)
-                    ) {
-                        Text(
-                            text = "The Headlines",
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.align(Alignment.CenterStart)
-                        )
-                    }
+                    AppTopBar(title = "Today's News")
 
                     // 탭 영역
                     ScrollableTabRow(

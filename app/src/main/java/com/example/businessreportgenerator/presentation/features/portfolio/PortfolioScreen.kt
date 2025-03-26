@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.businessreportgenerator.domain.model.AssetType
+import com.example.businessreportgenerator.presentation.common.AppTopBar
 import com.example.businessreportgenerator.presentation.common.PieChart
 import com.example.businessreportgenerator.presentation.common.PieChartData
 import java.text.NumberFormat
@@ -83,20 +84,7 @@ fun PortfolioScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Top App Bar
-            TopAppBar(
-                title = {
-                    Text(
-                        "My Portfolio",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black
-                )
-            )
-
+            AppTopBar(title = "My Portfolio")
             // 메인 콘텐츠 영역
             Column(
                 modifier = Modifier
