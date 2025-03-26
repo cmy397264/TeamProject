@@ -25,11 +25,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.businessreportgenerator.domain.model.Asset
@@ -50,111 +52,160 @@ data class PieChartData(
 @Composable
 fun PieChart(
     data: List<PieChartData>,
-    assets: List<Asset>,
+    assets: List<com.example.businessreportgenerator.domain.model.Asset> = emptyList(),
     modifier: Modifier = Modifier
 ) {
-    // 총액 계산
-    val total = data.sumOf { it.value.toDouble() }.toFloat()
+    if (data.isEmpty()) return
 
-    // 텍스트 측정기
-    val textMeasurer = rememberTextMeasurer()
+    val total = data.sumOf { it.value.toDouble() }
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // 파이 차트
-        Box(
+        Canvas(
             modifier = Modifier
-                .padding(16.dp)
-                .size(280.dp),
-            contentAlignment = Alignment.Center
+                .size(280.dp)
+                .padding(8.dp)
         ) {
-            Canvas(
-                modifier = Modifier
-                    .size(280.dp)
-                    .shadow(
-                        elevation = 4.dp,
-                        shape = CircleShape,
-                        clip = false
-                    )
-            ) {
-                val canvasWidth = size.width
-                val canvasHeight = size.height
-                val radius = min(canvasWidth, canvasHeight) / 2
-                val center = Offset(canvasWidth / 2, canvasHeight / 2)
+            var startAngle = -90f
+            val radius = size.minDimension / 2
+            val centerX = size.width / 2
+            val centerY = size.height / 2
 
-                var startAngle = -90f  // 12시 방향부터 시작
+            // 각 자산별 파이 조각 그리기
+            data.forEachIndexed { index, pieData ->
+                val sweepAngle = 360f * (pieData.value / total.toFloat())
 
-                // 기본 원 그리기 (배경)
-                drawCircle(
-                    color = Color(0xFFF5F5F5),
-                    radius = radius,
-                    center = center
+                // 파이 조각 그리기
+                drawArc(
+                    color = pieData.color,
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = true,
+                    topLeft = Offset(centerX - radius, centerY - radius),
+                    size = Size(radius * 2, radius * 2)
                 )
 
-                // 각 부분 그리기
-                data.forEach { pieData ->
-                    val sweepAngle = 360f * (pieData.value / total)
+                // 외곽선 (선택 사항)
+                drawArc(
+                    color = Color.White,
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = true,
+                    style = Stroke(width = 2f),
+                    topLeft = Offset(centerX - radius, centerY - radius),
+                    size = Size(radius * 2, radius * 2)
+                )
 
-                    // 섹션 그리기 (채워진 파이)
-                    drawArc(
-                        color = pieData.color,
-                        startAngle = startAngle,
-                        sweepAngle = sweepAngle,
-                        useCenter = true,
-                        topLeft = Offset(center.x - radius, center.y - radius),
-                        size = Size(radius * 2, radius * 2)
-                    )
+                // 중심각의 중간 위치 계산 (라벨 배치용)
+                val medianAngle = (startAngle + sweepAngle / 2) * (PI / 180f)
 
-                    // 테두리 그리기 (옵션)
-                    if (data.size > 1) {
-                        drawArc(
-                            color = Color.White,
-                            startAngle = startAngle,
-                            sweepAngle = sweepAngle,
-                            useCenter = true,
-                            style = Stroke(width = 2f),
-                            topLeft = Offset(center.x - radius, center.y - radius),
-                            size = Size(radius * 2, radius * 2)
-                        )
-                    }
+                // 조각이 충분히 큰 경우에만 텍스트 표시 (최소 20도)
+                if (sweepAngle >= 20) {
+                    // 반지름의 60% 위치에 라벨 배치
+                    val labelRadius = radius * 0.6f
+                    val labelX = centerX + (labelRadius * cos(medianAngle).toFloat())
+                    val labelY = centerY + (labelRadius * sin(medianAngle).toFloat())
 
-                    // 각 섹션에 라벨 그리기
-                    if (sweepAngle > 15) { // 너무 작은 조각에는 텍스트 표시 안함
-                        val middleAngle = startAngle + (sweepAngle / 2)
-                        val middleAngleInRadians = middleAngle * (PI / 180f)
+                    // 동적 텍스트 크기 조정 구현
+                    drawContext.canvas.nativeCanvas.apply {
+                        val paint = android.graphics.Paint().apply {
+                            color = android.graphics.Color.WHITE
+                            textAlign = android.graphics.Paint.Align.CENTER
+                            isFakeBoldText = true
+                            setShadowLayer(2f, 0f, 0f, android.graphics.Color.BLACK)
+                        }
 
-                        // 텍스트 위치 계산 (중심에서 바깥쪽으로 60~70% 지점)
-                        val labelRadius = radius * 0.65f
-                        val labelX = center.x + (labelRadius * cos(middleAngleInRadians)).toFloat()
-                        val labelY = center.y + (labelRadius * sin(middleAngleInRadians)).toFloat()
+                        // 기본 텍스트 크기 (sp 단위를 px로 변환)
+                        var textSize = (12 + (sweepAngle / 36)).coerceAtMost(16f)
+                        paint.textSize = textSize.sp.toPx()
 
-                        // 텍스트 그리기
+                        // 텍스트의 실제 너비 측정
+                        val textWidth = paint.measureText(pieData.label)
+                        // 파이 조각의 호 길이 계산 (라디안 단위 변환 후, 호 길이 = radius * 각(라디안))
+                        val arcLength = radius * (sweepAngle * (PI / 180)).toFloat()
+                        // 텍스트가 들어갈 수 있는 최대 너비 (호 길이의 80% 정도 사용)
+                        val maxAllowedWidth = arcLength * 0.8f
+
+                        if (textWidth > maxAllowedWidth) {
+                            // 텍스트 크기가 너무 크면 비율에 맞춰 조정
+                            val scalingFactor = maxAllowedWidth / textWidth
+                            textSize *= scalingFactor
+                            paint.textSize = textSize.sp.toPx()
+                        }
+
+                        // 최종적으로 텍스트 그리기
                         drawText(
-                            textMeasurer = textMeasurer,
-                            text = pieData.label,
-                            topLeft = Offset(
-                                labelX - 60, // 정확한 위치를 위해 텍스트 크기의 절반 빼기
-                                labelY - 10
-                            ),
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                textAlign = TextAlign.Center
-                            )
+                            pieData.label,
+                            labelX,
+                            labelY,
+                            paint
                         )
                     }
-
-                    startAngle += sweepAngle
                 }
+
+                startAngle += sweepAngle
             }
         }
 
-        // 종목 상세 정보 카드
-        if (data.isNotEmpty()) {
-            StockDetailsCard(data, assets)
+        // 외부 범례 추가 (차트 아래에 배치)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(top = 280.dp, bottom = 8.dp)
+        ) {
+            // 범례 항목들
+            data.chunked(2).forEach { rowData ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    rowData.forEach { pieData ->
+                        // 각 범례 항목
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            // 색상 표시
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .background(pieData.color, CircleShape)
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            // 라벨
+                            Text(
+                                text = pieData.label,
+                                fontSize = 12.sp,
+                                color = Color.DarkGray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            // 비율
+                            val proportion = (pieData.value / total.toFloat()) * 100
+                            Text(
+                                text = "(${proportion.toInt()}%)",
+                                fontSize = 12.sp,
+                                color = pieData.color,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
