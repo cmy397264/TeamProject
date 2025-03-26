@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.businessreportgenerator.presentation.common.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -102,19 +103,7 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
             // 보고서 리스트 화면
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "AI 애널리스트",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.White,
-                            titleContentColor = Color.Black
-                        )
-                    )
+                    AppTopBar(title = "My BigPicture")
                 }
             ) { padding ->
                 Column(
