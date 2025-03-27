@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
@@ -40,10 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.businessreportgenerator.presentation.common.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -65,35 +65,19 @@ import java.util.Locale
 /**
  * AI 애널리스트 메인 화면
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalystScreen(modifier: Modifier = Modifier) {
-    var selectedReport by remember { mutableStateOf<AnalystReport?>(null) }
-    val reports = DummyReportData.reports
+    val viewModel : AnalystViewModel = viewModel()
 
-    // 필터 상태
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var selectedSentiment by remember { mutableStateOf<ReportSentiment?>(null) }
+    val state by viewModel.uiState.collectAsState()
 
-    // 필터링된 보고서
-    val filteredReports = when {
-        selectedCategory != null && selectedSentiment != null -> {
-            reports.filter { it.category == selectedCategory && it.sentiment == selectedSentiment }
-        }
-        selectedCategory != null -> {
-            reports.filter { it.category == selectedCategory }
-        }
-        selectedSentiment != null -> {
-            reports.filter { it.sentiment == selectedSentiment }
-        }
-        else -> reports
-    }
+    val selectedReport = state.selectedReport
+    val selectedCategory = state.selectedCategory
+    val selectedSentiment = state.selectedSentiment
+    val categories = state.categories
+    val sentiments = state.sentiments
 
-    // 카테고리 목록
-    val categories = reports.map { it.category }.distinct()
-
-    // 감정 목록
-    val sentiments = ReportSentiment.values().toList()
+    val filteredReports = viewModel.getFilteredReport()
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -128,8 +112,7 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-
-                                    imageVector = Icons.Default.List,
+                                    imageVector = Icons.AutoMirrored.Filled.List,
                                     contentDescription = null,
                                     tint = Color(0xFF007AFF),
                                     modifier = Modifier.size(20.dp)
@@ -146,85 +129,26 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // 카테고리 필터
-                            Text(
-                                text = "카테고리",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
+                            FilterItem(
+                                filterName = "카테고리",
+                                itemList = categories,
+                                selectedItem = selectedCategory,
+                                onClick = { viewModel.setSelectedCategory(it) },
                             )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // 전체 옵션
-                                FilterChip(
-                                    selected = selectedCategory == null,
-                                    onClick = { selectedCategory = null },
-                                    label = { Text("전체") },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF007AFF),
-                                        selectedLabelColor = Color.White
-                                    )
-                                )
-
-                                // 각 카테고리 옵션
-                                categories.forEach { category ->
-                                    FilterChip(
-                                        selected = selectedCategory == category,
-                                        onClick = { selectedCategory = category },
-                                        label = { Text(category) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = Color(0xFF007AFF),
-                                            selectedLabelColor = Color.White
-                                        )
-                                    )
-                                }
-                            }
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // 감정 필터
-                            Text(
-                                text = "분위기",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
+                            FilterItem(
+                                filterName = "분위기",
+                                itemList = sentiments,
+                                itemToString = {sentiment -> sentiment.getDisplayName()},
+                                getItemColor = {sentiment -> sentiment.getColor()},
+                                selectedItem = selectedSentiment,
+                                onClick = { viewModel.setSelectedSentiment(it) },
                             )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // 전체 옵션
-                                FilterChip(
-                                    selected = selectedSentiment == null,
-                                    onClick = { selectedSentiment = null },
-                                    label = { Text("전체") },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF007AFF),
-                                        selectedLabelColor = Color.White
-                                    )
-                                )
-
-                                // 각 감정 옵션
-                                sentiments.forEach { sentiment ->
-                                    FilterChip(
-                                        selected = selectedSentiment == sentiment,
-                                        onClick = { selectedSentiment = sentiment },
-                                        label = { Text(sentiment.getDisplayName()) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sentiment.getColor(),
-                                            selectedLabelColor = Color.White
-                                        )
-                                    )
-                                }
-                            }
                         }
                     }
+
 
                     // 보고서 리스트
                     LazyColumn(
@@ -233,7 +157,7 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
                         items(filteredReports) { report ->
                             ReportCard(
                                 report = report,
-                                onClick = { selectedReport = it }
+                                onClick = { viewModel.setSelectedReport(it) }
                             )
                         }
 
@@ -247,8 +171,62 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
         } else {
             // 보고서 상세 화면
             ReportDetailScreen(
-                report = selectedReport!!,
-                onBackPressed = { selectedReport = null }
+                report = selectedReport,
+                onBackPressed = { viewModel.setSelectedReport(null) }
+            )
+        }
+    }
+}
+
+@Composable
+fun <T> FilterItem(
+    filterName : String = "",
+    itemList : List<T> = emptyList(),
+    itemToString : (T) -> String = {_-> ""},
+    getItemColor : (T) -> Color = {_ -> Color(0xFF007AFF) },
+    selectedItem : T? = null,
+    onClick: (T?) -> Unit = { _ -> }
+) {
+
+    Text(
+        text = filterName,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // 전체 옵션
+        FilterChip(
+            selected = selectedItem == null,
+            onClick = {onClick(null)},
+            label = { Text("전체") },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = Color(0xFF007AFF),
+                selectedLabelColor = Color.White
+            )
+        )
+
+        // 각 카테고리 옵션
+        itemList.forEach { item ->
+            FilterChip(
+                selected = selectedItem == item,
+                onClick = { onClick(item) },
+                label = {
+                    Text(
+                        text = when (item) {
+                            is String -> item
+                            else -> itemToString(item) }
+                    )
+                        },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = getItemColor(item),
+                    selectedLabelColor = Color.White
+                )
             )
         }
     }
