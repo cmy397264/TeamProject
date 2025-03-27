@@ -110,7 +110,7 @@ fun OnboardingScreen(
                             viewModel.decreaseCurrentStep()
                         }
                     },
-                    isNextEnabled = viewModel.isStepVaild()
+                    isNextEnabled = viewModel.isStepValid()
                 )
             }
         ) { paddingValues ->
