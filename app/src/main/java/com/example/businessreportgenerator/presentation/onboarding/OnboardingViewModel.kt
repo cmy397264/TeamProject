@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 data class OnboardingState(
     var currentStep: Int = 0,
@@ -16,40 +17,40 @@ class OnboardingViewModel : ViewModel() {
 
     //currentStep을 증가시키는 함수
     fun increaseCurrentStep() {
-        _state.value = _state.value.copy(currentStep = _state.value.currentStep + 1)
+        _state.update { it.copy(currentStep = _state.value.currentStep + 1) }
     }
 
     //currentStep을 감소시키는 함수
     fun decreaseCurrentStep() {
-        _state.value = _state.value.copy(currentStep = _state.value.currentStep - 1)
+        _state.update { it.copy(currentStep = _state.value.currentStep - 1) }
     }
 
     fun setUserDataName(name : String) {
-        _state.value = _state.value.copy(userData = _state.value.userData.copy(name = name))
+        _state.update { it.copy(userData = it.userData.copy(name = name)) }
     }
 
     fun setUserDataAge(age : Int) {
-        _state.value = _state.value.copy(userData = _state.value.userData.copy(age = age))
+        _state.update { it.copy(userData = it.userData.copy(age = age)) }
     }
 
     fun setUserDataInterests(interests : List<String>) {
-        _state.value = _state.value.copy(userData = _state.value.userData.copy(interests = interests))
+        _state.update { it.copy(userData = it.userData.copy(interests = interests)) }
     }
 
     fun setUserDataRiskTolerance(riskTolerance : String) {
-        _state.value = _state.value.copy(userData = _state.value.userData.copy(riskTolerance = riskTolerance))
+        _state.update { it.copy(userData = it.userData.copy(riskTolerance = riskTolerance)) }
     }
 
     fun setUserDataReportComplexity(reportComplexity : String) {
-        _state.value = _state.value.copy(userData = _state.value.userData.copy(reportComplexity = reportComplexity))
+        _state.update { it.copy(userData = it.userData.copy(reportComplexity= reportComplexity)) }
     }
 
     fun setUserDataReportDays(reportDays : List<Int>) {
-        _state.value = _state.value.copy(userData = _state.value.userData.copy(reportDays = reportDays))
+        _state.update { it.copy(userData = it.userData.copy(reportDays= reportDays)) }
     }
 
     //currentStep과 UserData를 비교하여 NextButton의 isEnabled를 결정하는 함수
-    fun isStepVaild() : Boolean {
+    fun isStepValid() : Boolean {
         val currentStep = _state.value.currentStep
         val userData = _state.value.userData
         return when (currentStep) {
