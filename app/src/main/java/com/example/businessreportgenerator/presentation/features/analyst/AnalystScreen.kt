@@ -1,6 +1,8 @@
 package com.example.businessreportgenerator.presentation.features.analyst
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -24,10 +26,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +44,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,18 +69,18 @@ import java.util.Locale
 /**
  * AI 애널리스트 메인 화면
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AnalystScreen(modifier: Modifier = Modifier) {
+    var isFilterOpen by remember { mutableStateOf(false) }
     val viewModel : AnalystViewModel = viewModel()
 
     val state by viewModel.uiState.collectAsState()
-
     val selectedReport = state.selectedReport
     val selectedCategory = state.selectedCategory
     val selectedSentiment = state.selectedSentiment
     val categories = state.categories
     val sentiments = state.sentiments
-
     val filteredReports = viewModel.getFilteredReport()
 
     Surface(
@@ -85,75 +89,79 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
     ) {
         if (selectedReport == null) {
             // 보고서 리스트 화면
-            Scaffold(
-                topBar = {
-                    AppTopBar(title = "My BigPicture")
-                }
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // 필터 영역
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            // 필터 제목
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.List,
-                                    contentDescription = null,
-                                    tint = Color(0xFF007AFF),
-                                    modifier = Modifier.size(20.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Text(
-                                    text = "필터",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            FilterItem(
-                                filterName = "카테고리",
-                                itemList = categories,
-                                selectedItem = selectedCategory,
-                                onClick = { viewModel.setSelectedCategory(it) },
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            FilterItem(
-                                filterName = "분위기",
-                                itemList = sentiments,
-                                itemToString = {sentiment -> sentiment.getDisplayName()},
-                                getItemColor = {sentiment -> sentiment.getColor()},
-                                selectedItem = selectedSentiment,
-                                onClick = { viewModel.setSelectedSentiment(it) },
-                            )
-                        }
+                    stickyHeader {
+                        AppTopBar(title = "My BigPicture")
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
+                        // 필터 영역
+                    stickyHeader {
+                            Card(
+                                modifier = Modifier
+                                    .animateContentSize()
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    // 필터 제목
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        IconButton(
+                                            onClick = { isFilterOpen = !isFilterOpen }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.List,
+                                                contentDescription = null,
+                                                tint = Color(0xFF007AFF),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
 
-                    // 보고서 리스트
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                                        Text(
+                                            text = "필터",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                    if (isFilterOpen) {
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        FilterItem(
+                                            filterName = "카테고리",
+                                            itemList = categories,
+                                            selectedItem = selectedCategory,
+                                            onClick = { viewModel.setSelectedCategory(it) }
+                                        )
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        FilterItem(
+                                            filterName = "분위기",
+                                            itemList = sentiments,
+                                            itemToString = { sentiment -> sentiment.getDisplayName() },
+                                            getItemColor = { sentiment -> sentiment.getColor() },
+                                            selectedItem = selectedSentiment,
+                                            onClick = { viewModel.setSelectedSentiment(it) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // 보고서 리스트
                         items(filteredReports) { report ->
                             ReportCard(
                                 report = report,
@@ -167,8 +175,7 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
                         }
                     }
                 }
-            }
-        } else {
+            } else {
             // 보고서 상세 화면
             ReportDetailScreen(
                 report = selectedReport,
