@@ -17,6 +17,5 @@ fun HomeScreen(
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("증권 리포트 홈 화면")
-        // 실제 UI는 추후 구현
     }
 }

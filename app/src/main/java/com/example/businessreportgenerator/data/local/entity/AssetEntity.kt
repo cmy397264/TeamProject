@@ -2,9 +2,6 @@ package com.example.businessreportgenerator.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import com.example.businessreportgenerator.data.local.converter.AssetTypeConverter
-import com.example.businessreportgenerator.data.local.converter.MapConverter
 import com.example.businessreportgenerator.domain.model.Asset
 import com.example.businessreportgenerator.domain.model.AssetType
 import java.util.UUID
