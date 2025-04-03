@@ -33,27 +33,28 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-// import com.example.businessreportgenerator.R
 import com.example.businessreportgenerator.domain.model.AssetType
 import com.example.businessreportgenerator.presentation.common.AppTopBar
 import com.example.businessreportgenerator.presentation.common.PieChart
 import com.example.businessreportgenerator.presentation.common.PieChartData
 import java.text.NumberFormat
 import java.util.Locale
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortfolioScreen(
-    viewModel: PortfolioViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
+    val viewModel: PortfolioViewModel = koinViewModel()
+
     val state by viewModel.state.collectAsState()
+
     val scrollState = rememberScrollState()
 
     // 애플 스타일의 프리미엄 색상 팔레트
