@@ -12,7 +12,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun AppEntryPoint() {
     val context = LocalContext.current
-    val onboardingViewModel: OnboardingViewModel = viewModel()
 
     // 온보딩 완료 여부 확인
     val isOnboardingCompleted = remember {
@@ -26,7 +25,7 @@ fun AppEntryPoint() {
     if (!showMainScreen) {
         // 온보딩 화면 표시
         OnboardingScreen(
-            onComplete = {
+            onOnboardingComplete = {
                 // 온보딩 완료 시 메인 화면으로 전환
                 showMainScreen = true
             }
