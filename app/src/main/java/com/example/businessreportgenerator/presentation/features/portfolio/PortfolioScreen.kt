@@ -16,6 +16,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -31,8 +33,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -125,6 +130,8 @@ fun PortfolioScreen(
                         viewModel.loadSamplePortfolio()
                         viewModel.hideSamplePortfolioDialog()
                     }
+
+
                 )
             }
             if (state.isSamplePortfolioDialogVisible) {
@@ -551,22 +558,32 @@ fun SamplePortfolioDialog(
                         Spacer(Modifier.height(8.dp))
                     }
                 }
-
-                // — 하단 액션 버튼
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(12.dp),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.Center  // 가운데 정렬
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("취소")
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = onLoad) {
-                        Text("샘플 적용")
+                    Surface(
+                        color = Color(0xFFE3F2FD),
+                        shape = RoundedCornerShape(12.dp),
+                        tonalElevation = 4.dp,
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        Text(
+                            text = "NASDAQ, KOSPI 내의 \n기술주 위주로 투자한 샘플 포트폴리오",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                color = Color(0xFF1565C0),
+                                fontWeight = FontWeight.SemiBold,
+                                lineHeight = 20.sp
+                            ),
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            textAlign = TextAlign.Center  // 텍스트도 가운데
+                        )
                     }
                 }
+
             }
         }
     }
