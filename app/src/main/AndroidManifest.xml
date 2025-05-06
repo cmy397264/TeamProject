@@ -10,6 +10,7 @@
         android:icon="@mipmap/bic_picture_icon"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/bic_picture_icon"
+        android:networkSecurityConfig="@xml/networksecurityconfig"
         android:supportsRtl="true"
         android:theme="@style/Theme.BusinessReportGenerator"
         tools:targetApi="31">

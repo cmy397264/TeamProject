@@ -38,7 +38,6 @@ class AnalystViewmodel : ViewModel() {
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-
     init {
         fetchAnalystReports()
     }
