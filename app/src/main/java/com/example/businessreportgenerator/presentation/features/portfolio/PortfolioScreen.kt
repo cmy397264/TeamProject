@@ -15,14 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.businessreportgenerator.domain.model.Asset
 import com.example.businessreportgenerator.domain.model.AssetType
 import com.example.businessreportgenerator.presentation.common.AppTopBar
 import com.example.businessreportgenerator.presentation.common.PieChart
@@ -121,11 +119,22 @@ fun PortfolioScreen(
 
             if (state.isSamplePortfolioDialogVisible) {
                 SamplePortfolioDialog(
-                    onDismiss = { viewModel.hideSamplePortfolioDialog() },
-                    onLoad    = {
+                    sampleAssets = state.sampleAssets,
+                    onDismiss    = { viewModel.hideSamplePortfolioDialog()},
+                    onLoad = {
                         viewModel.loadSamplePortfolio()
                         viewModel.hideSamplePortfolioDialog()
                     }
+                )
+            }
+            if (state.isSamplePortfolioDialogVisible) {
+                SamplePortfolioDialog(
+                    sampleAssets = state.sampleAssets,
+                    onDismiss    = { viewModel.hideSamplePortfolioDialog() },
+                    onLoad       = {
+                        viewModel.loadSamplePortfolio()
+                        viewModel.hideSamplePortfolioDialog()
+                        }
                 )
             }
         }
@@ -389,46 +398,6 @@ fun EmptyPortfolioContent(
 }
 
 @Composable
-fun SamplePortfolioDialog(
-    onDismiss: () -> Unit,
-    onLoad: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth(0.9f).wrapContentHeight()
-        ) {
-            Column(modifier = Modifier.background(Color.White).padding(24.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "샘플 포트폴리오", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "닫기")
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-                val sampleAssets = listOf("삼성전자", "애플", "강남 아파트", "KODEX 200")
-                LazyColumn {
-                    items(sampleAssets) { name ->
-                        Text(text = "• $name", fontSize = 16.sp, modifier = Modifier.padding(vertical = 4.dp))
-                    }
-                }
-                Spacer(Modifier.height(24.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text("취소") }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = onLoad) { Text("샘플 적용") }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun QuickActionButton(
     icon: ImageVector,
     label: String,
@@ -482,6 +451,123 @@ fun AssetListItem(
         Column(horizontalAlignment = Alignment.End) {
             Text(text = formatter.format(asset.purchasePrice), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             Text(text = "${proportion.toInt()}%", fontSize = 14.sp, color = color)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SamplePortfolioDialog(
+    sampleAssets: List<Asset>,
+    onDismiss: () -> Unit,
+    onLoad: () -> Unit
+) {
+    // 도넛형 차트용 데이터 생성
+    val colors = listOf(
+        Color(0xFF007AFF),
+        Color(0xFFFF9500),
+        Color(0xFF4CD964),
+        Color(0xFFFF2D55),
+        Color(0xFF5856D6),
+        Color(0xFFFFCC00),
+        Color(0xFF34C759),
+        Color(0xFFAF52DE)
+    )
+    val pieData = sampleAssets.mapIndexed { idx, asset ->
+        PieChartData(
+            value = asset.purchasePrice.toFloat(),
+            color = colors[idx % colors.size],
+            label = asset.name
+        )
+    }
+
+    // 총합 계산
+    val totalSampleValue = sampleAssets.sumOf { it.purchasePrice }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight()
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(Color.White)
+            ) {
+                // — 헤더
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "뒤로가기"
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "샘플 포트폴리오 예시",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Divider()
+
+                // — 도넛형 PieChart
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)    // 차트 크기 조절
+                        .padding(16.dp)
+                ) {
+                    PieChart(
+                        data = pieData,
+                        assets = sampleAssets,
+                        // 만약 도넛 비율 조절 옵션이 있다면 추가
+                    )
+                }
+
+                Divider()
+
+                // — 샘플 항목 리스트
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp) // 필요에 따라 조정
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    items(sampleAssets) { asset ->
+                        AssetListItem(
+                            asset      = asset,
+                            totalValue = totalSampleValue,
+                            color      = colors[sampleAssets.indexOf(asset) % colors.size]
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+
+                // — 하단 액션 버튼
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("취소")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = onLoad) {
+                        Text("샘플 적용")
+                    }
+                }
+            }
         }
     }
 }
