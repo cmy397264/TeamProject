@@ -4,9 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.Edit
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.businessreportgenerator.domain.model.AssetType
 import com.example.businessreportgenerator.presentation.common.AppTopBar
@@ -52,21 +54,19 @@ fun PortfolioScreen(
     modifier: Modifier = Modifier
 ) {
     val viewModel: PortfolioViewModel = koinViewModel()
-
     val state by viewModel.state.collectAsState()
 
     val scrollState = rememberScrollState()
 
-    // 애플 스타일의 프리미엄 색상 팔레트
     val colors = listOf(
-        Color(0xFF007AFF), // 애플 블루
-        Color(0xFFFF9500), // 애플 오렌지
-        Color(0xFF4CD964), // 애플 그린
-        Color(0xFFFF2D55), // 애플 핑크
-        Color(0xFF5856D6), // 애플 퍼플
-        Color(0xFFFFCC00), // 애플 옐로우
-        Color(0xFF34C759), // 라이트 그린
-        Color(0xFFAF52DE)  // 라이트 퍼플
+        Color(0xFF007AFF),
+        Color(0xFFFF9500),
+        Color(0xFF4CD964),
+        Color(0xFFFF2D55),
+        Color(0xFF5856D6),
+        Color(0xFFFFCC00),
+        Color(0xFF34C759),
+        Color(0xFFAF52DE)
     )
 
     // 파이 차트 데이터 생성
@@ -82,7 +82,7 @@ fun PortfolioScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = Color(0xFFF8F9FA) // 애플 스타일 배경색 (밝은 회색)
+        color = Color(0xFFF8F9FA)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Top App Bar
@@ -119,6 +119,16 @@ fun PortfolioScreen(
                 AddAssetDialog(
                     onDismiss = { viewModel.hideAddAssetDialog() },
                     onAddAsset = { viewModel.addAsset(it) }
+                )
+            }
+
+            if (state.isSamplePortfolioDialogVisible) {
+                SamplePortfolioDialog(
+                    onDismiss = { viewModel.hideSamplePortfolioDialog() },
+                    onLoad = {
+                        viewModel.loadSamplePortfolio()
+                        viewModel.hideSamplePortfolioDialog()
+                    }
                 )
             }
         }
@@ -453,7 +463,8 @@ fun AssetListItem(
 }
 
 @Composable
-fun EmptyPortfolioContent(onClick: () -> Unit) {
+fun EmptyPortfolioContent(onAddClick: () -> Unit,
+                          onShowSampleClick: () -> Unit) {
     val viewModel: PortfolioViewModel = viewModel()
 
     Column(
@@ -664,6 +675,72 @@ val investmentTips = listOf(
         backgroundColor = Color(0xFFFFF3E0)
     )
 )
+
+@Composable
+fun SamplePortfolioDialog(
+    onDismiss: () -> Unit,
+    onLoad: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight()
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(Color.White)
+                    .padding(24.dp)
+            ) {
+                // 헤더
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "샘플 포트폴리오",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "닫기")
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 샘플 항목 미리보기 (간단히 이름만 뿌려줌)
+                val sampleAssets = listOf("삼성전자", "애플", "강남 아파트", "KODEX 200")
+                LazyColumn {
+                    items(sampleAssets) { name ->
+                        Text(
+                            text = "• $name",
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 액션 버튼
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("취소")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = onLoad) {
+                        Text("샘플 적용")
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun InvestmentTipCard(tip: InvestmentTip) {
