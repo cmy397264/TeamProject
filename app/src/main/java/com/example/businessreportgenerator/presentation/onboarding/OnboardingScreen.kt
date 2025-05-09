@@ -25,10 +25,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.DayOfWeek
+import com.example.businessreportgenerator.notification.NotificationHelper
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 
-/**
- * 온보딩 메인 컴포넌트
- */
+
 @Composable
 fun OnboardingScreen(
     onComplete: () -> Unit
@@ -381,9 +388,6 @@ fun BasicInfoStep(
     }
 }
 
-/**
- * 관심 분야 선택 단계
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InterestsStep(
@@ -403,6 +407,17 @@ fun InterestsStep(
     val daysOfWeek = listOf("월", "화", "수", "목", "금", "토", "일")
 
     val scrollState = rememberScrollState()
+
+
+    val context = LocalContext.current
+    // 런타임 런처 선언
+    val notifPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                scheduleWeeklyAlarms(context, selectedDays)
+                onComplete(selectedInterests, selectedDays)
+            }
+        }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -592,29 +607,49 @@ fun InterestsStep(
                     )
                 }
 
-                // 완료 버튼
                 Button(
                     onClick = {
-                        onComplete(selectedInterests, selectedDays)
+                        val needPermission =
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.POST_NOTIFICATIONS
+                                    ) != PackageManager.PERMISSION_GRANTED
+
+                        if (needPermission) {
+                            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            scheduleWeeklyAlarms(context, selectedDays)
+                            onComplete(selectedInterests, selectedDays)
+                        }
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
+                    modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF007AFF),
-                        contentColor = Color.White
+                        contentColor   = Color.White
                     ),
                     enabled = selectedInterests.isNotEmpty() && selectedDays.isNotEmpty()
-                ) {
-                    Text(
-                        text = "완료",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                ) { Text("완료", fontSize = 18.sp, fontWeight = FontWeight.Medium) }
             }
         }
+    }
+}
+
+// 헬퍼 함수
+private fun scheduleWeeklyAlarms(context: Context, reportDays: List<Int>) {
+    val hour = 15 // 시간 정하기
+    val minute = 42
+    reportDays.forEach { dow ->
+        NotificationHelper.schedulePeriodicWeekly(
+            context   = context,
+            id        = 2000 + dow,
+            title     = "주간 투자 리포트",
+            body      = "선택하신 관심 분야 최신 리포트를 확인하세요.",
+            dayOfWeek = DayOfWeek.of(dow + 1),   // 1 = 월 … 7 = 일
+            hour      = hour,
+            minute    = minute
+        )
     }
 }
 
