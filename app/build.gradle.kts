@@ -44,6 +44,10 @@ android {
 val roomVersion = "2.6.1"
 
 dependencies {
+    // Notification
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+
     // Room 라이브러리
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
