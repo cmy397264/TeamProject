@@ -1,6 +1,6 @@
 package com.example.businessreportgenerator.data.repository
 
-import com.example.businessreportgenerator.data.remote.ReportApiService
+import com.example.businessreportgenerator.data.remote.api.ReportApiService
 import com.example.businessreportgenerator.domain.model.Report
 import com.example.businessreportgenerator.domain.repository.ReportRepository
 import kotlinx.coroutines.flow.Flow
