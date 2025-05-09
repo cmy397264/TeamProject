@@ -1,16 +1,17 @@
-package com.example.businessreportgenerator.data.remote
+package com.example.businessreportgenerator.data.remote.network
 
+import com.example.businessreportgenerator.data.remote.api.ScheduleApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private const val BASE_URL = "https://dockerel.o-r.kr/"
 
-    val apiService : RemoteApiService by lazy{
+    val ScheduleService : ScheduleApiService by lazy{
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(RemoteApiService::class.java)
+            .create(ScheduleApiService::class.java)
     }
 }

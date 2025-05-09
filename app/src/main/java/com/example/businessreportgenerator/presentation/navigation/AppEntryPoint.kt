@@ -1,10 +1,12 @@
 package com.example.businessreportgenerator.presentation.navigation
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.businessreportgenerator.presentation.onboarding.OnboardingScreen
-import com.example.businessreportgenerator.presentation.onboarding.OnboardingViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
  * 앱 진입점 화면 - 온보딩 또는 메인 화면 표시
@@ -12,7 +14,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun AppEntryPoint() {
     val context = LocalContext.current
-    val onboardingViewModel: OnboardingViewModel = viewModel()
 
     // 온보딩 완료 여부 확인
     val isOnboardingCompleted = remember {

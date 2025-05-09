@@ -1,4 +1,4 @@
-package com.example.businessreportgenerator.data.remote
+package com.example.businessreportgenerator.data.remote.model
 
 data class Schedule(
     val status: String,

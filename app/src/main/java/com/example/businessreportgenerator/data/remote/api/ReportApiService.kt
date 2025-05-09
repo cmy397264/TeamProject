@@ -1,4 +1,4 @@
-package com.example.businessreportgenerator.data.remote
+package com.example.businessreportgenerator.data.remote.api
 
 import com.example.businessreportgenerator.data.model.ReportDto
 import retrofit2.http.GET
