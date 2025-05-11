@@ -5,6 +5,6 @@ import retrofit2.Call
 import retrofit2.http.GET
 
 interface ScheduleApiService {
-    @GET("api/v1/schedule")
+    @GET("schedule")
     fun getSchedule() : Call<Schedule>
 }

@@ -1,5 +1,12 @@
 package com.example.businessreportgenerator.presentation.onboarding
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.expandVertically
@@ -8,13 +15,43 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,16 +61,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import java.time.DayOfWeek
-import com.example.businessreportgenerator.notification.NotificationHelper
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.businessreportgenerator.data.remote.model.ReportRequest
+import com.example.businessreportgenerator.data.remote.model.ReportResponse
+import com.example.businessreportgenerator.data.remote.network.RetrofitClient
+import com.example.businessreportgenerator.notification.NotificationHelper
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.time.DayOfWeek
 
 
 @Composable
@@ -60,24 +98,49 @@ fun OnboardingScreen(
 
                 // 사용자 데이터 저장
                 val sharedPrefs = context.getSharedPreferences("user_prefs", 0)
-                val editor = sharedPrefs.edit()
+                sharedPrefs.edit {
 
-                // 기본 정보 저장
-                editor.putString("user_name", state.userData.name)
-                editor.putInt("user_age", state.userData.age)
-                editor.putString("risk_tolerance", state.userData.riskTolerance)
-                editor.putString("report_complexity", state.userData.reportComplexity)
+                    // 기본 정보 저장
+                    putString("user_name", state.userData.name)
+                    putInt("user_age", state.userData.age)
+                    putString("risk_tolerance", state.userData.riskTolerance)
+                    putString("report_complexity", state.userData.reportComplexity)
 
-                // 관심 분야 저장
-                editor.putStringSet("interests", interests.toSet())
+                    // 관심 분야 저장
+                    putStringSet("interests", interests.toSet())
 
-                // 레포트 수령 요일 저장
-                editor.putString("report_days", reportDays.joinToString(","))
+                    // 레포트 수령 요일 저장
+                    putString("report_days", reportDays.joinToString(","))
 
-                // 온보딩 완료 플래그 설정
-                editor.putBoolean("onboarding_completed", true)
+                    // 온보딩 완료 플래그 설정
+                    putBoolean("onboarding_completed", true)
+                }
 
-                editor.apply()
+                val userReportReQuest = ReportRequest(
+                    reportType = "economy",
+                    stockName = null,
+                    riskTolerance = state.userData.riskTolerance,
+                    reportDifficultyLevel = state.userData.reportComplexity,
+                    interestAreas = state.userData.interests,
+                )
+
+                val call = RetrofitClient.ReportService.createReport(userReportReQuest)
+                call.enqueue(object : Callback<ReportResponse> {
+                    override fun onResponse(
+                        call: Call<ReportResponse>,
+                        response: Response<ReportResponse>
+                    ) {
+                        if (response.isSuccessful) {
+                            val reportResponse = response.body()
+                            Log.d("reportResponse", reportResponse.toString())
+                        } else {
+                            Log.d("reportResponse", "invalid body")
+                        }
+                    }
+                    override fun onFailure(call: Call<ReportResponse>, t: Throwable) {
+                        Log.d("reportResponse", "network error")
+                    }
+                })
 
                 // 온보딩 완료 콜백 호출
                 onComplete()
@@ -97,8 +160,8 @@ fun BasicInfoStep(
 ) {
     var name by remember { mutableStateOf(userData.name) }
     var ageText by remember { mutableStateOf(if(userData.age > 0) userData.age.toString() else "") }
-    var selectedRiskLevel by remember { mutableStateOf(getRiskLevelIndex(userData.riskTolerance)) }
-    var selectedReportLevel by remember { mutableStateOf(getReportLevelIndex(userData.reportComplexity)) }
+    var selectedRiskLevel by remember { mutableIntStateOf(getRiskLevelIndex(userData.riskTolerance)) }
+    var selectedReportLevel by remember { mutableIntStateOf(getReportLevelIndex(userData.reportComplexity)) }
 
     val riskLevelOptions = listOf(
         "하이리스크 하이리턴",

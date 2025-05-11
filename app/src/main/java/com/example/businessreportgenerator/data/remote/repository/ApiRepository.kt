@@ -1,5 +1,6 @@
 package com.example.businessreportgenerator.data.remote.repository
 
+import com.example.businessreportgenerator.data.remote.model.ReportRequest
 import com.example.businessreportgenerator.data.remote.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

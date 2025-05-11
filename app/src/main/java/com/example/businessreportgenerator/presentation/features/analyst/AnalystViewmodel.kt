@@ -2,6 +2,8 @@ package com.example.businessreportgenerator.presentation.features.analyst
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.businessreportgenerator.domain.model.AnalystReport
+import com.example.businessreportgenerator.domain.model.ReportSentiment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -10,18 +12,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// 외부에서 받아오는 데이터 목록
-data class RemoteState(
-    val reports: List<AnalystReport> = emptyList(),
-    val categories: List<String> = emptyList(),
-    val sentiments: List<ReportSentiment> = emptyList()
-)
-
-// UiState에 관여하는 데이터
 data class AnalystUiState(
     val selectedReport: AnalystReport? = null,
     val selectedCategory: String? = null,
     val selectedSentiment: ReportSentiment? = null,
+)
+
+data class RemoteState(
+    val reports: List<AnalystReport> = emptyList(),
+    val categories: List<String> = emptyList(),
+    val sentiments: List<ReportSentiment> = emptyList()
 )
 
 class AnalystViewmodel : ViewModel() {
