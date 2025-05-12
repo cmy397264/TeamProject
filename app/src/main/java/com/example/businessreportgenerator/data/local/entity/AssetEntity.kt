@@ -7,8 +7,7 @@ import com.example.businessreportgenerator.data.domain.AssetType
 
 @Entity(tableName = "assets")
 data class AssetEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val name: String,
     val type: AssetType,
     val purchasePrice: Double,
@@ -18,7 +17,7 @@ data class AssetEntity(
     // 도메인 모델로 변환하는 확장 함수
     fun toAsset(): Asset {
         return Asset(
-            id = id ?: 0L,
+            id = id,
             name = name,
             type = type,
             purchasePrice = purchasePrice,
@@ -31,7 +30,7 @@ data class AssetEntity(
         // Asset 도메인 모델을 Entity로 변환하는 함수
         fun fromAsset(asset: Asset): AssetEntity {
             return AssetEntity(
-                id = asset.id,
+                id = 0L,                  // 새 삽입 시 항상 0L → Room 이 신규 id 발급
                 name = asset.name,
                 type = asset.type,
                 purchasePrice = asset.purchasePrice,

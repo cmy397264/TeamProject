@@ -10,7 +10,7 @@ interface AssetDao {
     fun getAllAssets(): Flow<List<AssetEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAsset(asset: AssetEntity)
+    suspend fun insertAsset(entity: AssetEntity): Long   // 새로 생성된 ID 리턴
 
     @Delete
     suspend fun deleteAsset(asset: AssetEntity)
