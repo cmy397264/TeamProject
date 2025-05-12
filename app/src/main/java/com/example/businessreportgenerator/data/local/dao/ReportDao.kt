@@ -17,4 +17,7 @@ interface ReportDao {
 
     @Query("SELECT * FROM reports")
     fun selectAllReports(): Flow<List<ReportEntity>>
+
+    @Query("SELECT * FROM reports ORDER BY date DESC")
+    fun observeReports(): Flow<List<ReportEntity>>
 }

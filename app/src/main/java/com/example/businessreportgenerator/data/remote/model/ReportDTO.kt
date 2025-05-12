@@ -32,6 +32,6 @@ class ReportResponse {
         content = data?.insight ?: "",
         summary = data?.summary ?: "",
         date    = System.currentTimeMillis(),
-        type    = ReportType.CUSTOM          // ★ 기본값 넣기 (또는 서버 값 매핑)
+        type    = ReportType.CUSTOM.toString()          // ★ 기본값 넣기 (또는 서버 값 매핑)
     )
 }

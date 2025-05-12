@@ -4,10 +4,9 @@ import com.example.businessreportgenerator.data.local.dao.ReportDao
 import com.example.businessreportgenerator.data.local.entity.ReportEntity
 import kotlinx.coroutines.flow.Flow
 
-class ReportRepository(private val reportDao: ReportDao) : ReportRepositoryInterface {
-    override fun insertReport(report: ReportEntity) = reportDao.insertReport(report)
+class ReportRepository(private val dao: ReportDao) {
 
-    override fun deleteReport(report: ReportEntity) = reportDao.deleteReport(report)
+    fun observeReports(): Flow<List<ReportEntity>> = dao.observeReports()
 
-    override fun getAllReports(): Flow<List<ReportEntity>> = reportDao.selectAllReports()
+    suspend fun insertReport(entity: ReportEntity) = dao.insertReport(entity)
 }

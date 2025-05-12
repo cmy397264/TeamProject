@@ -3,7 +3,6 @@ package com.example.businessreportgenerator.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.example.businessreportgenerator.data.domain.ReportType
 import com.example.businessreportgenerator.data.local.converter.ReportTypeConverter
 
 @Entity(tableName = "reports")
@@ -15,5 +14,5 @@ data class ReportEntity(
     val content: String,
     val summary: String,
     val date: Long,
-    val type: ReportType
+    val type: String
 )
