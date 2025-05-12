@@ -1,13 +1,29 @@
 package com.example.businessreportgenerator.notification
 
 import android.Manifest
-import android.app.*
-import android.content.*
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.core.app.*
-import androidx.work.*
-import java.time.*
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import java.time.DayOfWeek
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 /* ───────────────────── object 내부 ───────────────────── */
@@ -53,6 +69,8 @@ object NotificationHelper {
     }
 
     /* ---------- 2) 정확(Doze 무시) 주간 알림 ---------- */
+    @SuppressLint("ScheduleExactAlarm")
+    @RequiresApi(Build.VERSION_CODES.S)
     fun scheduleExactWeekly(
         context: Context,
         id: Int,
@@ -171,6 +189,7 @@ object NotificationHelper {
 
 /* ───────────────────── object 바깥 영역 ───────────────────── */
 class AlarmReceiver : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onReceive(context: Context, intent: Intent) {
         val id    = intent.getIntExtra("id", 0)
         val title = intent.getStringExtra("title") ?: return
