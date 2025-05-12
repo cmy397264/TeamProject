@@ -1,13 +1,17 @@
 package com.example.businessreportgenerator.data.remote.api
 
-import com.example.businessreportgenerator.data.model.ReportDto
-import retrofit2.http.GET
-import retrofit2.http.Path
+import com.example.businessreportgenerator.data.remote.model.ReportRequest
+import com.example.businessreportgenerator.data.remote.model.ReportResponse
+import com.example.businessreportgenerator.data.remote.model.StockRequest
+import com.example.businessreportgenerator.data.remote.model.StockResponse
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 interface ReportApiService {
-    @GET("reports")
-    suspend fun getReports(): List<ReportDto>
+    @POST("report")
+    fun createReport(@Body reportRequest: ReportRequest): Call<ReportResponse>
 
-    @GET("reports/{id}")
-    suspend fun getReportById(@Path("id") id: String): ReportDto
+    @POST("schedule/register")
+    fun registerStock(@Body stockRequest : StockRequest) : Call<StockResponse>
 }

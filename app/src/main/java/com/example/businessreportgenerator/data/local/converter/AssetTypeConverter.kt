@@ -1,7 +1,7 @@
 package com.example.businessreportgenerator.data.local.converter
 
 import androidx.room.TypeConverter
-import com.example.businessreportgenerator.domain.model.AssetType
+import com.example.businessreportgenerator.data.domain.AssetType
 
 class AssetTypeConverter {
     @TypeConverter

@@ -2,8 +2,8 @@ package com.example.businessreportgenerator.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.businessreportgenerator.domain.model.Asset
-import com.example.businessreportgenerator.domain.model.AssetType
+import com.example.businessreportgenerator.data.domain.Asset
+import com.example.businessreportgenerator.data.domain.AssetType
 import java.util.UUID
 
 @Entity(tableName = "assets")

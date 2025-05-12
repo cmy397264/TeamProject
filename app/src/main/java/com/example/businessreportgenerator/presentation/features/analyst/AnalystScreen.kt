@@ -62,6 +62,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.businessreportgenerator.data.domain.AnalystReport
+import com.example.businessreportgenerator.data.domain.GraphData
+import com.example.businessreportgenerator.data.domain.GraphType
+import com.example.businessreportgenerator.data.domain.ReportSentiment
+import com.example.businessreportgenerator.data.domain.getColor
+import com.example.businessreportgenerator.data.domain.getDisplayName
 import com.example.businessreportgenerator.presentation.common.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -163,9 +169,9 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 보고서 리스트
-                    items(filteredReports) { report ->
+                    items(filteredReports) {
                         ReportCard(
-                            report = report,
+                            report = it,
                             onClick = { viewModel.setSelectedReport(it) }
                         )
                     }

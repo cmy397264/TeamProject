@@ -1,5 +1,6 @@
 package com.example.businessreportgenerator.presentation.features.portfolio
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -16,8 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -33,31 +32,36 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.businessreportgenerator.domain.model.Asset
-import com.example.businessreportgenerator.domain.model.AssetType
+import com.example.businessreportgenerator.data.domain.Asset
+import com.example.businessreportgenerator.data.domain.AssetType
+import com.example.businessreportgenerator.data.local.StockViewModel
+import com.example.businessreportgenerator.data.remote.model.StockRequest
+import com.example.businessreportgenerator.data.remote.model.StockResponse
+import com.example.businessreportgenerator.data.remote.network.RetrofitClient
 import com.example.businessreportgenerator.presentation.common.AppTopBar
 import com.example.businessreportgenerator.presentation.common.PieChart
 import com.example.businessreportgenerator.presentation.common.PieChartData
 import java.text.NumberFormat
 import java.util.Locale
 import org.koin.androidx.compose.koinViewModel
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortfolioScreen(
     modifier: Modifier = Modifier
 ) {
-    val viewModel: PortfolioViewModel = koinViewModel()
-    val state by viewModel.state.collectAsState()
+    val portfolioViewModel: PortfolioViewModel = koinViewModel()
+    val portfolioState by portfolioViewModel.state.collectAsState()
 
+    val stockViewModel : StockViewModel = koinViewModel()
     val scrollState = rememberScrollState()
 
     val colors = listOf(
@@ -71,7 +75,7 @@ fun PortfolioScreen(
         Color(0xFFAF52DE)
     )
 
-    val pieChartData = state.assets.mapIndexed { index, asset ->
+    val pieChartData = portfolioState.assets.mapIndexed { index, asset ->
         PieChartData(
             value = asset.purchasePrice.toFloat(),
             color = colors[index % colors.size],
@@ -98,49 +102,81 @@ fun PortfolioScreen(
                     visible = true,
                     enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { it / 2 }
                 ) {
-                    if (state.assets.isEmpty()) {
+                    if (portfolioState.assets.isEmpty()) {
                         EmptyPortfolioContent(
-                            onAddClick       = { viewModel.showAddAssetDialog() },
-                            onShowSampleClick = { viewModel.showSamplePortfolioDialog() }
+                            onAddClick       = { portfolioViewModel.showAddAssetDialog() },
+                            onShowSampleClick = { portfolioViewModel.showSamplePortfolioDialog() }
                         )
                     } else {
                         PopulatedPortfolioContent(
-                            totalValue  = state.totalPortfolioValue,
+                            totalValue  = portfolioState.totalPortfolioValue,
                             formatter   = formatter,
                             pieChartData = pieChartData,
-                            assets      = state.assets,
-                            onAddClick  = { viewModel.showAddAssetDialog() }
+                            assets      = portfolioState.assets,
+                            onAddClick  = { portfolioViewModel.showAddAssetDialog() }
                         )
                     }
                 }
             }
 
-            if (state.isAddAssetDialogVisible) {
+            if (portfolioState.isAddAssetDialogVisible) {
                 AddAssetDialog(
-                    onDismiss   = { viewModel.hideAddAssetDialog() },
-                    onAddAsset  = { viewModel.addAsset(it) }
+                    onDismiss   = { portfolioViewModel.hideAddAssetDialog() },
+                    onAddAsset  = {
+                        portfolioViewModel.addAsset(it)
+
+                        if (it.type == AssetType.STOCK) {
+                            val market = it.details["market"]
+                            val stockType = if (market == "코스피" || market == "코스닥") "korea" else "us"
+                            val call = RetrofitClient.ReportService.registerStock(
+                                StockRequest(
+                                    stockType = stockType,
+                                    stockName = it.name
+                                )
+                            )
+                            Log.d("stockRequest", "${stockType}, ${it.name}")
+                            call.enqueue(object : Callback<StockResponse> {
+                                override fun onResponse(
+                                    call: Call<StockResponse>,
+                                    response: Response<StockResponse>
+                                ) {
+                                    Log.d("BigPicture", "${response.body()}")
+                                    val stockResponse = response.body()
+                                    if (stockResponse != null) {
+                                        stockViewModel.insertStock(stockResponse.toDomain())
+                                        Log.d("BigPicture", "success")
+                                    } else
+                                        Log.d("BigPicture", "fail")
+                                }
+
+                                override fun onFailure(call: Call<StockResponse>, t: Throwable) {
+                                    Log.d("BigPicture", "network error")
+                                }
+                            })
+                        }
+                    }
                 )
             }
 
-            if (state.isSamplePortfolioDialogVisible) {
+            if (portfolioState.isSamplePortfolioDialogVisible) {
                 SamplePortfolioDialog(
-                    sampleAssets = state.sampleAssets,
-                    onDismiss    = { viewModel.hideSamplePortfolioDialog()},
+                    sampleAssets = portfolioState.sampleAssets,
+                    onDismiss    = { portfolioViewModel.hideSamplePortfolioDialog()},
                     onLoad = {
-                        viewModel.loadSamplePortfolio()
-                        viewModel.hideSamplePortfolioDialog()
+                        portfolioViewModel.loadSamplePortfolio()
+                        portfolioViewModel.hideSamplePortfolioDialog()
                     }
 
 
                 )
             }
-            if (state.isSamplePortfolioDialogVisible) {
+            if (portfolioState.isSamplePortfolioDialogVisible) {
                 SamplePortfolioDialog(
-                    sampleAssets = state.sampleAssets,
-                    onDismiss    = { viewModel.hideSamplePortfolioDialog() },
+                    sampleAssets = portfolioState.sampleAssets,
+                    onDismiss    = { portfolioViewModel.hideSamplePortfolioDialog() },
                     onLoad       = {
-                        viewModel.loadSamplePortfolio()
-                        viewModel.hideSamplePortfolioDialog()
+                        portfolioViewModel.loadSamplePortfolio()
+                        portfolioViewModel.hideSamplePortfolioDialog()
                         }
                 )
             }
@@ -153,7 +189,7 @@ fun PopulatedPortfolioContent(
     totalValue: Double,
     formatter: NumberFormat,
     pieChartData: List<PieChartData>,
-    assets: List<com.example.businessreportgenerator.domain.model.Asset>,
+    assets: List<Asset>,
     onAddClick: () -> Unit
 ) {
     Column(
@@ -426,7 +462,7 @@ fun QuickActionButton(
 
 @Composable
 fun AssetListItem(
-    asset: com.example.businessreportgenerator.domain.model.Asset,
+    asset: Asset,
     totalValue: Double,
     color: Color
 ) {
