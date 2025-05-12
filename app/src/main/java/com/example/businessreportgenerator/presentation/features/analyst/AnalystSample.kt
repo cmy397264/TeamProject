@@ -11,7 +11,7 @@ import java.util.Date
 object DummyReportData {
     val reports = listOf(
         AnalystReport(
-            id = "1",
+            id = 1,
             title = "2024년 2분기 반도체 시장 전망",
             summary = "반도체 시장의 견조한 수요와 AI 칩 성장으로 인해 긍정적인 전망이 유지되고 있습니다.",
             date = Date(System.currentTimeMillis() - 2 * 24 * 3600 * 1000), // 2일 전
@@ -71,7 +71,7 @@ object DummyReportData {
             """.trimIndent()
         ),
         AnalystReport(
-            id = "2",
+            id = 2,
             title = "원자재 가격 상승과 인플레이션 영향 분석",
             summary = "글로벌 원자재 가격 상승으로 인한 인플레이션 압력이 높아지고 있어 관련 산업에 주의가 필요합니다.",
             date = Date(System.currentTimeMillis() - 5 * 24 * 3600 * 1000), // 5일 전
@@ -132,7 +132,7 @@ object DummyReportData {
             """.trimIndent()
         ),
         AnalystReport(
-            id = "3",
+            id = 3,
             title = "테슬라 1분기 실적 분석 및 전망",
             summary = "테슬라의 1분기 실적이 시장 예상을 하회하며 전기차 시장 경쟁 심화에 따른 우려가 커지고 있습니다.",
             date = Date(System.currentTimeMillis() - 8 * 24 * 3600 * 1000), // 8일 전
@@ -190,7 +190,7 @@ object DummyReportData {
             """.trimIndent()
         ),
         AnalystReport(
-            id = "4",
+            id = 4,
             title = "국내 부동산 시장 동향과 투자 전략",
             summary = "국내 부동산 시장은 금리 인하 기대감으로 인한 관망세가 지속되고 있으며, 지역별 차별화가 심화되고 있습니다.",
             date = Date(System.currentTimeMillis() - 12 * 24 * 3600 * 1000), // 12일 전
@@ -254,7 +254,7 @@ object DummyReportData {
             """.trimIndent()
         ),
         AnalystReport(
-            id = "5",
+            id = 5,
             title = "2024년 2분기 글로벌 경제 전망",
             summary = "글로벌 경제는 완만한 회복세를 보이고 있으나, 각국의 통화정책 변화와 지정학적 리스크에 주의가 필요합니다.",
             date = Date(System.currentTimeMillis() - 15 * 24 * 3600 * 1000), // 15일 전

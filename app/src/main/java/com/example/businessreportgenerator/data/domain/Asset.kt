@@ -1,9 +1,7 @@
 package com.example.businessreportgenerator.data.domain
 
-import java.util.UUID
-
 data class Asset(
-    val id: String = UUID.randomUUID().toString(),
+    val id: Long = 0L,
     val name: String,
     val type: AssetType,
     val purchasePrice: Double,

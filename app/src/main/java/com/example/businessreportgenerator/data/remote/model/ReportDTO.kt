@@ -1,5 +1,6 @@
 package com.example.businessreportgenerator.data.remote.model
 
+import com.example.businessreportgenerator.data.domain.ReportType
 import com.example.businessreportgenerator.data.local.entity.ReportEntity
 import com.google.gson.annotations.SerializedName
 
@@ -26,12 +27,11 @@ class ReportResponse {
         return "ReportResponse(code=$code, status=$status, message=$message, data=$data)"
     }
 
-    fun toDomain() : ReportEntity {
-        return ReportEntity(
-            title = data?.insight?.substring(0 until 10) ?: "",
-            content = data?.insight ?: "",
-            summary = data?.summary ?: "",
-            date = System.currentTimeMillis()
-        )
-    }
+    fun toDomain(): ReportEntity = ReportEntity(
+        title   = data?.insight?.take(40) ?: "",
+        content = data?.insight ?: "",
+        summary = data?.summary ?: "",
+        date    = System.currentTimeMillis(),
+        type    = ReportType.CUSTOM          // ★ 기본값 넣기 (또는 서버 값 매핑)
+    )
 }

@@ -48,7 +48,7 @@ enum class GraphType {
  * 보고서 데이터 모델
  */
 data class AnalystReport(
-    val id: String,
+    val id: Long = 0L,
     val title: String,
     val summary: String,
     val date: Date,
