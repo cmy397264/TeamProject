@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -65,12 +64,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.businessreportgenerator.data.remote.model.ReportRequest
-import com.example.businessreportgenerator.data.remote.model.ReportResponse
-import com.example.businessreportgenerator.data.remote.network.RetrofitClient
 import com.example.businessreportgenerator.notification.NotificationHelper
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
+import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 
 
@@ -78,28 +74,28 @@ import java.time.DayOfWeek
 fun OnboardingScreen(
     onComplete: () -> Unit
 ) {
-    val viewModel: OnboardingViewModel = viewModel()
-    val state by viewModel.state.collectAsState()
+    val analystViewmodel : AnalystViewmodel = koinViewModel()
+    val onBoardingViewModel: OnboardingViewModel = viewModel()
+    val state by onBoardingViewModel.state.collectAsState()
     val context = LocalContext.current
 
     when (state.currentStep) {
         0 -> BasicInfoStep(
             userData = state.userData,
             onNext = { name, age, riskTolerance, reportComplexity ->
-                viewModel.setBasicInfo(name, age, riskTolerance, reportComplexity)
-                viewModel.nextStep()
+                onBoardingViewModel.setBasicInfo(name, age, riskTolerance, reportComplexity)
+                onBoardingViewModel.nextStep()
             }
         )
         1 -> InterestsStep(
             userData = state.userData,
-            onBack = { viewModel.prevStep() },
+            onBack = { onBoardingViewModel.prevStep() },
             onComplete = { interests, reportDays ->
-                viewModel.setInterestsAndDays(interests, reportDays)
+                onBoardingViewModel.setInterestsAndDays(interests, reportDays)
 
                 // 사용자 데이터 저장
                 val sharedPrefs = context.getSharedPreferences("user_prefs", 0)
                 sharedPrefs.edit {
-
                     // 기본 정보 저장
                     putString("user_name", state.userData.name)
                     putInt("user_age", state.userData.age)
@@ -116,31 +112,19 @@ fun OnboardingScreen(
                     putBoolean("onboarding_completed", true)
                 }
 
+                val riskTolerance = sharedPrefs.getString("risk_tolerance", null).toString()
+                val reportComplexity = sharedPrefs.getString("report_complexity", null).toString()
+                val interests = sharedPrefs.getStringSet("interests", null)!!.toList()
+
                 val userReportReQuest = ReportRequest(
                     reportType = "economy",
                     stockName = null,
-                    riskTolerance = state.userData.riskTolerance,
-                    reportDifficultyLevel = state.userData.reportComplexity,
-                    interestAreas = state.userData.interests,
+                    riskTolerance = riskTolerance,
+                    reportDifficultyLevel = reportComplexity,
+                    interestAreas = interests,
                 )
 
-                val call = RetrofitClient.ReportService.createReport(userReportReQuest)
-                call.enqueue(object : Callback<ReportResponse> {
-                    override fun onResponse(
-                        call: Call<ReportResponse>,
-                        response: Response<ReportResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            val reportResponse = response.body()
-                            Log.d("reportResponse", reportResponse.toString())
-                        } else {
-                            Log.d("reportResponse", "invalid body")
-                        }
-                    }
-                    override fun onFailure(call: Call<ReportResponse>, t: Throwable) {
-                        Log.d("reportResponse", "network error")
-                    }
-                })
+                analystViewmodel.requestReport(userReportReQuest)
 
                 // 온보딩 완료 콜백 호출
                 onComplete()

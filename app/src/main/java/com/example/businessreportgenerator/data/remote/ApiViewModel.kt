@@ -1,12 +1,13 @@
 package com.example.businessreportgenerator.data.remote
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.businessreportgenerator.data.remote.repository.ApiRepository
+import com.example.businessreportgenerator.data.remote.network.RetrofitClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class ApiStatus { LOADING, ERROR, DONE }
 
@@ -16,26 +17,22 @@ data class ApiState(
     val error: String? = null
 )
 
-class ApiViewModel(apiRepository: ApiRepository) : ViewModel() {
+class ApiViewModel() : ViewModel() {
     private val _state = MutableStateFlow(ApiState())
     val state : StateFlow<ApiState> = _state.asStateFlow()
 
-    init {
-        fetchData(apiRepository)
+    suspend fun sendPing() : Boolean = withContext(Dispatchers.IO) {
+        try {
+            val response = RetrofitClient.ScheduleService.getSchedule().execute()
+            Log.d("BigPicture", "ping : ${response.isSuccessful}")
+            return@withContext response.isSuccessful
+        } catch (e : Exception) {
+            Log.d("BigPicture", "ping : ${e.message}")
+            return@withContext false
+        } as Boolean
     }
 
-    fun fetchData(apiRepository : ApiRepository) {
-        viewModelScope.launch {
-            try {
-                val data = apiRepository.fetchApi()
-                if (data)
-                    _state.value = ApiState(isLoading = ApiStatus.DONE)
-                else {
-                    _state.value = ApiState(isLoading = ApiStatus.ERROR, error = "body is blank")
-                }
-            } catch (e: Exception) {
-                _state.value = ApiState(isLoading = ApiStatus.ERROR, error = e.message)
-            }
-        }
+    fun updateApiStatus(status: ApiStatus) {
+        _state.value = _state.value.copy(isLoading = status)
     }
 }

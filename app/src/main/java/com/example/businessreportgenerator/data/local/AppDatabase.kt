@@ -8,12 +8,18 @@ import androidx.room.TypeConverters
 import com.example.businessreportgenerator.data.local.converter.AssetTypeConverter
 import com.example.businessreportgenerator.data.local.converter.MapConverter
 import com.example.businessreportgenerator.data.local.dao.AssetDao
+import com.example.businessreportgenerator.data.local.dao.ReportDao
+import com.example.businessreportgenerator.data.local.dao.StockDao
 import com.example.businessreportgenerator.data.local.entity.AssetEntity
+import com.example.businessreportgenerator.data.local.entity.ReportEntity
+import com.example.businessreportgenerator.data.local.entity.StockEntity
 
-@Database(entities = [AssetEntity::class], version = 1, exportSchema = false)
+@Database(entities = [AssetEntity::class, ReportEntity::class, StockEntity::class], version = 4, exportSchema = false)
 @TypeConverters(AssetTypeConverter::class, MapConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun assetDao(): AssetDao
+    abstract fun reportDao(): ReportDao
+    abstract fun stockDao(): StockDao
 
     companion object {
         @Volatile

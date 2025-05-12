@@ -1,5 +1,6 @@
 package com.example.businessreportgenerator.data.remote.model
 
+import com.example.businessreportgenerator.data.local.entity.ReportEntity
 import com.google.gson.annotations.SerializedName
 
 data class Data(
@@ -25,7 +26,12 @@ class ReportResponse {
         return "ReportResponse(code=$code, status=$status, message=$message, data=$data)"
     }
 
-    fun toDomain() {
-
+    fun toDomain() : ReportEntity {
+        return ReportEntity(
+            title = data?.insight?.substring(0 until 10) ?: "",
+            content = data?.insight ?: "",
+            summary = data?.summary ?: "",
+            date = System.currentTimeMillis()
+        )
     }
 }

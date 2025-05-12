@@ -1,4 +1,4 @@
-package com.example.businessreportgenerator.domain.model
+package com.example.businessreportgenerator.data.domain
 
 import androidx.compose.ui.graphics.Color
 import java.util.Date

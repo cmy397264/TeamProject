@@ -1,9 +1,9 @@
 package com.example.businessreportgenerator.presentation.features.analyst
 
-import com.example.businessreportgenerator.domain.model.AnalystReport
-import com.example.businessreportgenerator.domain.model.GraphData
-import com.example.businessreportgenerator.domain.model.GraphType
-import com.example.businessreportgenerator.domain.model.ReportSentiment
+import com.example.businessreportgenerator.data.domain.AnalystReport
+import com.example.businessreportgenerator.data.domain.GraphData
+import com.example.businessreportgenerator.data.domain.GraphType
+import com.example.businessreportgenerator.data.domain.ReportSentiment
 import java.util.Date
 /**
  * 더미 보고서 데이터
