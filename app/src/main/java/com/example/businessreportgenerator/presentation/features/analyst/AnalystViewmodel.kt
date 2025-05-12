@@ -13,6 +13,7 @@ import com.example.businessreportgenerator.data.remote.model.ReportRequest
 import com.example.businessreportgenerator.data.remote.model.ReportResponse
 import com.example.businessreportgenerator.data.remote.network.RetrofitClient
 import com.example.businessreportgenerator.di.ServiceLocator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -109,7 +110,9 @@ class AnalystViewmodel(
             })
     }
 
-    private fun save(entity: ReportEntity) = viewModelScope.launch {
-        repository.insertReport(entity)
-    }
+    private fun save(entity: ReportEntity) {
+        viewModelScope.launch(Dispatchers.IO) {         // ❸
+            repository.insertReport(entity)
+        }
+}
 }
