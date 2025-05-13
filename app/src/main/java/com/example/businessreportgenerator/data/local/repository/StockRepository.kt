@@ -9,5 +9,8 @@ class StockRepository(private val stockDao: StockDao) : StockRepositoryInterface
 
     override suspend fun deleteStock(stock: StockEntity) = stockDao.deleteStock(stock)
 
+    override fun getLatestStocksGroupedByName(): Flow<List<StockEntity>> = stockDao.getLatestStocksGroupedByName()
+
     override fun getAllStocks(): Flow<List<StockEntity>> = stockDao.getAllStocks()
+    override fun updateStockDate(stockName: String, newDate: String) = stockDao.updateStockDate(stockName, newDate)
 }

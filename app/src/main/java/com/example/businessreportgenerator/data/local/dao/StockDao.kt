@@ -15,4 +15,17 @@ interface StockDao {
     fun deleteStock(stock: StockEntity)
     @Query("SELECT * FROM stocks")
     fun getAllStocks(): Flow<List<StockEntity>>
+    @Query("""
+    SELECT s.* FROM stocks s
+    INNER JOIN (
+        SELECT stockName, MAX(date) AS latestDate
+        FROM stocks
+        GROUP BY stockName
+    ) grouped
+    ON s.stockName = grouped.stockName AND s.date = grouped.latestDate
+    ORDER BY s.date DESC
+""")
+    fun getLatestStocksGroupedByName(): Flow<List<StockEntity>>
+    @Query("UPDATE stocks SET date = :newDate WHERE stockName = :stockName")
+    fun updateStockDate(stockName: String, newDate: String)
 }

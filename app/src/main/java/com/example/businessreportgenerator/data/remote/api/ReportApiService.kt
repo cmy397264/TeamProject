@@ -10,7 +10,7 @@ import retrofit2.http.POST
 
 interface ReportApiService {
     @POST("report")
-    fun createReport(@Body reportRequest: ReportRequest): Call<ReportResponse>
+    suspend fun createReport(@Body reportRequest: ReportRequest): ReportResponse
 
     @POST("schedule/register")
     fun registerStock(@Body stockRequest : StockRequest) : Call<StockResponse>
