@@ -65,16 +65,13 @@ import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.businessreportgenerator.data.remote.model.ReportRequest
 import com.example.businessreportgenerator.notification.NotificationHelper
-import com.example.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
-import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 
 
 @Composable
 fun OnboardingScreen(
-    onComplete: () -> Unit
+    onComplete: (ReportRequest) -> Unit
 ) {
-    val analystViewmodel : AnalystViewmodel = koinViewModel()
     val onBoardingViewModel: OnboardingViewModel = viewModel()
     val state by onBoardingViewModel.state.collectAsState()
     val context = LocalContext.current
@@ -124,10 +121,8 @@ fun OnboardingScreen(
                     interestAreas = interests,
                 )
 
-                analystViewmodel.requestReport(userReportReQuest)
-
                 // 온보딩 완료 콜백 호출
-                onComplete()
+                onComplete(userReportReQuest)
             }
         )
     }

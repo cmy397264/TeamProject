@@ -14,7 +14,7 @@ import com.example.businessreportgenerator.data.local.entity.AssetEntity
 import com.example.businessreportgenerator.data.local.entity.ReportEntity
 import com.example.businessreportgenerator.data.local.entity.StockEntity
 
-@Database(entities = [AssetEntity::class, ReportEntity::class, StockEntity::class], version = 4, exportSchema = false)
+@Database(entities = [AssetEntity::class, ReportEntity::class, StockEntity::class], version = 5, exportSchema = false)
 @TypeConverters(AssetTypeConverter::class, MapConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun assetDao(): AssetDao

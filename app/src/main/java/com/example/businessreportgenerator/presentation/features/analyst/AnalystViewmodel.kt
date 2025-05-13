@@ -10,7 +10,6 @@ import com.example.businessreportgenerator.data.local.entity.ReportEntity
 import com.example.businessreportgenerator.data.local.repository.ReportRepository
 import com.example.businessreportgenerator.data.mapper.toAnalystReport
 import com.example.businessreportgenerator.data.remote.model.ReportRequest
-import com.example.businessreportgenerator.data.remote.model.ReportResponse
 import com.example.businessreportgenerator.data.remote.network.RetrofitClient
 import com.example.businessreportgenerator.di.ServiceLocator
 import kotlinx.coroutines.Dispatchers
@@ -22,9 +21,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 /**
  * Room → Repository → ViewModel → UI   (DI 프레임워크 없이)
@@ -95,24 +91,19 @@ class AnalystViewmodel(
     /* ──────────────────────────────────────────────── *
      * 6)  서버 요청 → DB 저장
      * ──────────────────────────────────────────────── */
-    fun requestReport(req: ReportRequest) {
-        RetrofitClient.ReportService.createReport(req)
-            .enqueue(object : Callback<ReportResponse> {
-                override fun onResponse(
-                    call: Call<ReportResponse>,
-                    response: Response<ReportResponse>
-                ) {
-                    response.body()?.toDomain()?.let { save(it) }
-                }
-                override fun onFailure(call: Call<ReportResponse>, t: Throwable) {
-                    Log.e("AnalystVM", "network error", t)
-                }
-            })
+    suspend fun requestReport(req: ReportRequest) {
+        try {
+            val response = RetrofitClient.ReportService.createReport(req)
+            Log.d("BigPicture", "requestReport : $response")
+            save(response.toDomain())
+        } catch (e : Exception) {
+            Log.e("BigPicture", "requestReport : ${e.message}")
+        }
     }
 
     private fun save(entity: ReportEntity) {
         viewModelScope.launch(Dispatchers.IO) {         // ❸
             repository.insertReport(entity)
         }
-}
+    }
 }
