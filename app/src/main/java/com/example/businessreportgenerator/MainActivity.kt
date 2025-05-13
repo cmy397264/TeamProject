@@ -25,6 +25,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.firstOrNull
 import org.koin.androidx.compose.koinViewModel
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,18 +51,23 @@ class MainActivity : ComponentActivity() {
                     Log.d("BigPicture", "app fetch : ping success")
                     Log.d("BigPicture", "app fetch : onboard is {$onboardingCompleted}")
                     if (onboardingCompleted) {
-                        stockViewModel.getAllStocks().firstOrNull()?.let {stocks ->
-                            val deferredList = stocks.map { stock ->
-                                val reportRequest = ReportRequest(
-                                    reportType = "stock",
-                                    stockName = stock.stockName,
-                                    riskTolerance = riskTolerance.toString(),
-                                    reportDifficultyLevel = reportComplexity,
-                                    interestAreas = interests ?: emptyList()
-                                )
-                                async {
-                                    analystViewModel.requestReport(reportRequest)
-                                }
+                        val today = LocalDate.now().toString()
+                        stockViewModel.getLatestStocksGroupByDate().firstOrNull()?.let {stocks ->
+                            val filteredStocks = stocks.filter { stock ->
+                                stock.date != today
+                            }
+                            val deferredList = filteredStocks.map { stock ->
+                                    val reportRequest = ReportRequest(
+                                        reportType = "stock",
+                                        stockName = stock.stockName,
+                                        riskTolerance = riskTolerance.toString(),
+                                        reportDifficultyLevel = reportComplexity,
+                                        interestAreas = interests ?: emptyList()
+                                    )
+                                    async {
+                                        analystViewModel.requestReport(reportRequest)
+                                        stockViewModel.updateStockDate(stock.stockName, today)
+                                    }
                             }
                             deferredList.awaitAll()
                         }

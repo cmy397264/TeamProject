@@ -2,6 +2,7 @@ package com.example.businessreportgenerator.data.remote.model
 
 import com.example.businessreportgenerator.data.local.entity.StockEntity
 import com.google.gson.annotations.SerializedName
+import java.time.LocalDate
 
 data class StockData(
     val stockType: String,
@@ -28,7 +29,8 @@ class StockResponse {
         return StockEntity(
             stockType = data?.stockType ?: "",
             stockName = data?.stockName ?: "",
-            stockKeyword = data?.stockKeyword ?: ""
+            stockKeyword = data?.stockKeyword ?: "",
+            date = LocalDate.now().minusDays(1).toString()
         )
     }
 }

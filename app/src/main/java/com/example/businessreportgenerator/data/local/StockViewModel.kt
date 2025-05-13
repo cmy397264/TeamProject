@@ -50,5 +50,12 @@ class StockViewModel(val stockRepository: StockRepository) : ViewModel() {
         }
     }
 
-    fun getAllStocks() = stockRepository.getAllStocks()
+//    fun getAllStocks() = stockRepository.getAllStocks()
+
+    fun getLatestStocksGroupByDate() = stockRepository.getLatestStocksGroupedByName()
+
+    fun updateStockDate(stockName: String, newDate: String) =
+        viewModelScope.launch(Dispatchers.IO) {
+            stockRepository.updateStockDate(stockName, newDate)
+        }
 }

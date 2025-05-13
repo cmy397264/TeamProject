@@ -8,5 +8,6 @@ data class StockEntity (
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val stockType: String,
     val stockName: String,
-    val stockKeyword : String
+    val stockKeyword : String,
+    val date: String
 )
