@@ -4,12 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.businessreportgenerator.data.domain.Asset
 import com.example.businessreportgenerator.data.domain.AssetType
-import java.util.UUID
 
 @Entity(tableName = "assets")
 data class AssetEntity(
-    @PrimaryKey
-    val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val name: String,
     val type: AssetType,
     val purchasePrice: Double,
@@ -32,7 +30,7 @@ data class AssetEntity(
         // Asset 도메인 모델을 Entity로 변환하는 함수
         fun fromAsset(asset: Asset): AssetEntity {
             return AssetEntity(
-                id = asset.id,
+                id = 0L,                  // 새 삽입 시 항상 0L → Room 이 신규 id 발급
                 name = asset.name,
                 type = asset.type,
                 purchasePrice = asset.purchasePrice,

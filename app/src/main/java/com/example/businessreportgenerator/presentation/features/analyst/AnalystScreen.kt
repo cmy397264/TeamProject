@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,16 +80,16 @@ import java.util.Locale
 @Composable
 fun AnalystScreen(modifier: Modifier = Modifier) {
     var isFilterOpen by remember { mutableStateOf(false) }
-    val viewModel : AnalystViewmodel = viewModel()
-
-    val state by viewModel.uiState.collectAsState()
-    val remoteState by viewModel.remoteState.collectAsState()
-    val selectedReport = state.selectedReport
-    val selectedCategory = state.selectedCategory
-    val selectedSentiment = state.selectedSentiment
-    val categories = remoteState.categories
-    val sentiments = remoteState.sentiments
-    val filteredReports = viewModel.filteredReports.collectAsState().value
+    val context = LocalContext.current
+    val viewModel: AnalystViewmodel = viewModel(
+        factory = remember { AnalystViewModelFactory(context.applicationContext) }
+    )
+    val selectedCategory   = viewModel.selectedCategory      // alias (Flow 아님)
+    val selectedSentiment  = viewModel.selectedSentiment
+    val selectedReport  by viewModel.selectedReport.collectAsState()
+    val reports      by viewModel.filteredReports.collectAsState()
+    val categories   by viewModel.categoriesFlow.collectAsState()
+    val sentiments     = viewModel.sentiments
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -169,10 +170,10 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 보고서 리스트
-                    items(filteredReports) {
+                    items(reports, key = { it.id }) { report ->
                         ReportCard(
-                            report = it,
-                            onClick = { viewModel.setSelectedReport(it) }
+                            report  = report,
+                            onClick = { viewModel.setSelectedReport(report) }
                         )
                     }
 
@@ -185,7 +186,7 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
         } else {
             // 보고서 상세 화면
             ReportDetailScreen(
-                report = selectedReport,
+                report = selectedReport!!,       // non-null 보증
                 onBackPressed = { viewModel.setSelectedReport(null) }
             )
         }

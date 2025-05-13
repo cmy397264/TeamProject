@@ -15,7 +15,7 @@ class AssetRepository(private val assetDao: AssetDao) : AssetRepositoryInterface
     }
 
     override suspend fun insertAsset(asset: Asset) {
-        assetDao.insertAsset(AssetEntity.Companion.fromAsset(asset))
+        val newId = assetDao.insertAsset(AssetEntity.fromAsset(asset))
     }
 
     override suspend fun deleteAsset(asset: Asset) {
