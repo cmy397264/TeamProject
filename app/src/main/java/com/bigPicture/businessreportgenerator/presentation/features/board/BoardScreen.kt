@@ -101,7 +101,9 @@ fun BoardScreen(
                             BoardPostCard(
                                 post = post,
                                 onClick = { onClickItem(post) },
-                                onAddComment = onAddComment
+                                onAddComment = onAddComment,
+                                onEditPost = { id, title, content, pw -> viewModel.updateBoard(id, title, content, pw) },
+                                onDeletePost = { id, pw -> viewModel.deleteBoard(id, pw)}
                             )
                         }
                     }

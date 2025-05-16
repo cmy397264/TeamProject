@@ -40,9 +40,19 @@ fun BoardPostCard(
     post: BoardDTO,
     onClick: () -> Unit,
     onAddComment: (Long, String, String) -> Unit,
-) {
+    onEditPost: ((Long, String, String, String) -> Unit)? = null,
+    onDeletePost: ((Long, String) -> Unit)? = null,
+
+    ) {
     var commentText by remember { mutableStateOf("") }
     var passwordText by remember { mutableStateOf("") }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var editTitle by remember { mutableStateOf(post.title) }
+    var editContent by remember { mutableStateOf(post.contents) }
+    var editPassword by remember { mutableStateOf("") }
+    var deletePassword by remember { mutableStateOf("") }
+
 
     Card(
         modifier = Modifier
@@ -54,11 +64,25 @@ fun BoardPostCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            Text(
-                post.title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color(0xFF1C1C1E)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    post.title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF1C1C1E),
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(
+                    onClick = { showEditDialog = true },
+                    content = { Text("수정", color = Color.Gray, fontSize = 14.sp) }
+                )
+                TextButton(
+                    onClick = { showDeleteDialog = true },
+                    content = { Text("삭제", color = Color.Red, fontSize = 14.sp) }
+                )
+            }
             Spacer(Modifier.height(6.dp))
             Text(
                 post.contents,
@@ -69,6 +93,12 @@ fun BoardPostCard(
             Divider(thickness = 1.dp, color = Color(0xFFF2F2F7))
             // 댓글 UI
             Column(modifier = Modifier.padding(top = 8.dp)) {
+                TextButton(onClick = { /* showEditDialog = true */ }) {
+                    Text("수정", color = Color.Gray, fontSize = 14.sp)
+                }
+                TextButton(onClick = { /* showDeleteDialog = true */ }) {
+                    Text("삭제", color = Color.Red, fontSize = 14.sp)
+                }
                 if (post.comments.isEmpty()) {
                     Text(
                         "아직 댓글이 없습니다.",
@@ -122,6 +152,137 @@ fun BoardPostCard(
                 }
             }
         }
+        if (showEditDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showEditDialog = false },
+                title = { Text("글 수정") },
+                text = {
+                    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
+                        OutlinedTextField(
+                            value = editTitle,
+                            onValueChange = { editTitle = it },
+                            label = { Text("제목") },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = editContent,
+                            onValueChange = { editContent = it },
+                            label = { Text("내용") }
+                        )
+                        OutlinedTextField(
+                            value = editPassword,
+                            onValueChange = { editPassword = it },
+                            label = { Text("비밀번호") },
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onEditPost?.invoke(post.boardIdx, editTitle, editContent, editPassword)
+                            showEditDialog = false
+                            editPassword = ""
+                        }
+                    ) { Text("수정") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showEditDialog = false }) { Text("취소") }
+                }
+            )
+        }
+        if (showDeleteDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("글 삭제") },
+                text = {
+                    OutlinedTextField(
+                        value = deletePassword,
+                        onValueChange = { deletePassword = it },
+                        label = { Text("비밀번호") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onDeletePost?.invoke(post.boardIdx, deletePassword)
+                            showDeleteDialog = false
+                            deletePassword = ""
+                        }
+                    ) { Text("삭제", color = Color.Red) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text("취소") }
+                }
+            )
+        }
+        if (showEditDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showEditDialog = false },
+                title = { Text("글 수정") },
+                text = {
+                    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
+                        OutlinedTextField(
+                            value = editTitle,
+                            onValueChange = { editTitle = it },
+                            label = { Text("제목") },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = editContent,
+                            onValueChange = { editContent = it },
+                            label = { Text("내용") }
+                        )
+                        OutlinedTextField(
+                            value = editPassword,
+                            onValueChange = { editPassword = it },
+                            label = { Text("비밀번호") },
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onEditPost?.invoke(post.boardIdx, editTitle, editContent, editPassword)
+                            showEditDialog = false
+                            editPassword = ""
+                        }
+                    ) { Text("수정") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showEditDialog = false }) { Text("취소") }
+                }
+            )
+        }
+        if (showDeleteDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("글 삭제") },
+                text = {
+                    OutlinedTextField(
+                        value = deletePassword,
+                        onValueChange = { deletePassword = it },
+                        label = { Text("비밀번호") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onDeletePost?.invoke(post.boardIdx, deletePassword)
+                            showDeleteDialog = false
+                            deletePassword = ""
+                        }
+                    ) { Text("삭제", color = Color.Red) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text("취소") }
+                }
+            )
+        }
+
     }
 }
 

@@ -41,7 +41,7 @@ class BoardRepository(
 
     // 게시글 삭제
     suspend fun deleteBoard(boardIdx: Long, password: String): Boolean = withContext(Dispatchers.IO) {
-        val res = boardApi.deleteBoard(boardIdx, password)
+        val res = boardApi.deleteBoard(boardIdx, "\"$password\"")
         res.status == "OK"
     }
 

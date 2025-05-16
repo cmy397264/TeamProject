@@ -27,9 +27,11 @@ interface BoardApiService {
         @Body request: BoardUpdateDTO
     ): ApiResponse<BoardDTO>
 
-    @HTTP(method = "DELETE", path = "board/{boardIdx}", hasBody = true)
+    @HTTP(method = "DELETE", path = "/api/v1/board/{boardIdx}", hasBody = true)
     suspend fun deleteBoard(
         @Path("boardIdx") boardIdx: Long,
         @Body password: String
-    ): ApiResponse<Unit>
+    ): ApiResponse<Any>
+
+
 }
