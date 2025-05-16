@@ -17,9 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystScreen
-import com.bigPicture.businessreportgenerator.presentation.features.feed.FeedScreen
 import com.bigPicture.businessreportgenerator.presentation.features.news.NewsScreen
 import com.bigPicture.businessreportgenerator.presentation.features.portfolio.PortfolioScreen
+import com.example.app.features.board.BoardScreen
+import com.example.app.features.board.BoardViewModel
 
 @Composable
 fun MainScreen() {
@@ -38,7 +39,19 @@ fun MainScreen() {
             NavigationItem.Portfolio.route -> PortfolioScreen(modifier = Modifier.padding(paddingValues))
             NavigationItem.Analyst.route -> AnalystScreen(modifier = Modifier.padding(paddingValues))
             NavigationItem.News.route -> NewsScreen(modifier = Modifier.padding(paddingValues))
-            NavigationItem.Feed.route -> FeedScreen(modifier = Modifier.padding(paddingValues))
+            NavigationItem.Board.route -> {
+                // 임시 ViewModel 생성(로컬에서)
+                val boardViewModel: BoardViewModel = viewModel()
+                val uiState by boardViewModel.uiState.collectAsState()
+
+                BoardScreen(
+                    uiState = uiState,
+                    onClickItem = { post -> /* TODO: 상세 이동 등 */ },
+                    onAddPost = { title, content -> boardViewModel.addPost(title, content) },
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+
         }
     }
 }
