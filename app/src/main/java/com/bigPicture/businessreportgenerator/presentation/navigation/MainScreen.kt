@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.navigation
 
+import BoardViewModel
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -20,7 +21,7 @@ import com.bigPicture.businessreportgenerator.presentation.features.analyst.Anal
 import com.bigPicture.businessreportgenerator.presentation.features.news.NewsScreen
 import com.bigPicture.businessreportgenerator.presentation.features.portfolio.PortfolioScreen
 import com.example.app.features.board.BoardScreen
-import com.example.app.features.board.BoardViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MainScreen() {
@@ -40,18 +41,18 @@ fun MainScreen() {
             NavigationItem.Analyst.route -> AnalystScreen(modifier = Modifier.padding(paddingValues))
             NavigationItem.News.route -> NewsScreen(modifier = Modifier.padding(paddingValues))
             NavigationItem.Board.route -> {
-                // 임시 ViewModel 생성(로컬에서)
-                val boardViewModel: BoardViewModel = viewModel()
+                val boardViewModel: BoardViewModel = koinViewModel()
                 val uiState by boardViewModel.uiState.collectAsState()
 
                 BoardScreen(
                     uiState = uiState,
-                    onClickItem = { post -> /* TODO: 상세 이동 등 */ },
-                    onAddPost = { title, content -> boardViewModel.addPost(title, content) },
+                    onClickItem = { /* ... */ },
+                    onAddPost = { title, content, password -> boardViewModel.createBoard(title, content, password) },
+                    onAddComment = { postId, comment, password -> boardViewModel.addComment(postId, comment, password) },
+                    viewModel = viewModel(),
                     modifier = Modifier.padding(paddingValues)
                 )
             }
-
         }
     }
 }
