@@ -7,7 +7,6 @@ import com.bigPicture.businessreportgenerator.data.remote.model.BoardDTO
 import com.bigPicture.businessreportgenerator.data.remote.model.BoardUpdateDTO
 import com.bigPicture.businessreportgenerator.data.remote.model.CommentCreateDTO
 import com.bigPicture.businessreportgenerator.data.remote.model.CommentDTO
-import com.bigPicture.businessreportgenerator.data.remote.model.CommentUpdateDTO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -41,7 +40,8 @@ class BoardRepository(
 
     // 게시글 삭제
     suspend fun deleteBoard(boardIdx: Long, password: String): Boolean = withContext(Dispatchers.IO) {
-        val res = boardApi.deleteBoard(boardIdx, "\"$password\"")
+        val body = mapOf("boardPassword" to password)
+        val res = boardApi.deleteBoard(boardIdx, body)
         res.status == "OK"
     }
 
@@ -57,14 +57,21 @@ class BoardRepository(
     }
 
     // 댓글 수정
-    suspend fun updateComment(commentIdx: Long, comment: String, password: String): CommentDTO? = withContext(Dispatchers.IO) {
-        val dto = CommentUpdateDTO(comment, password)
-        commentApi.updateComment(commentIdx, dto).data
+    suspend fun updateComment(commentIdx: Long, comment: String, password: String): Boolean = withContext(Dispatchers.IO) {
+        val body = mapOf(
+            "comment" to comment,
+            "commentPassword" to password
+        )
+        val res = commentApi.updateComment(commentIdx, body)
+        res.status == "OK"
     }
+
 
     // 댓글 삭제
     suspend fun deleteComment(commentIdx: Long, password: String): Boolean = withContext(Dispatchers.IO) {
-        val res = commentApi.deleteComment(commentIdx, password)
+        val body = mapOf("commentPassword" to password)
+        val res = commentApi.deleteComment(commentIdx, body)
         res.status == "OK"
     }
+
 }

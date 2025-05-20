@@ -127,7 +127,7 @@ class BoardViewModel(
         viewModelScope.launch {
             try {
                 boardRepository.updateComment(commentIdx, comment, password)
-                fetchComments(boardIdx)
+                fetchBoards()
                 Log.d(TAG, "댓글 수정 성공: 댓글ID=$commentIdx")
                 onSuccess?.invoke()
             } catch (e: Exception) {
@@ -140,7 +140,7 @@ class BoardViewModel(
         viewModelScope.launch {
             try {
                 boardRepository.deleteComment(commentIdx, password)
-                fetchComments(boardIdx)
+                fetchBoards()
                 Log.d(TAG, "댓글 삭제 성공: 댓글ID=$commentIdx")
                 onSuccess?.invoke()
             } catch (e: Exception) {

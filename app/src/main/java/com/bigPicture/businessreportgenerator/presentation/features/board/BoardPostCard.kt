@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.features.board
 
+import BoardViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.data.remote.model.BoardDTO
 import com.bigPicture.businessreportgenerator.data.remote.model.CommentDTO
 
@@ -52,6 +55,7 @@ fun BoardPostCard(
     var editContent by remember { mutableStateOf(post.contents) }
     var editPassword by remember { mutableStateOf("") }
     var deletePassword by remember { mutableStateOf("") }
+    val viewModel: BoardViewModel = viewModel();
 
 
     Card(
@@ -108,7 +112,16 @@ fun BoardPostCard(
                     )
                 } else {
                     post.comments.forEach { comment ->
-                        CommentItem(comment)
+                        CommentItem(
+                            comment = comment,
+                            onEditComment = { commentIdx, newComment, password ->
+                                // ViewModel 함수 호출 예시
+                                viewModel.updateComment(commentIdx, newComment, password, post.boardIdx)
+                            },
+                            onDeleteComment = { commentIdx, password ->
+                                viewModel.deleteComment(commentIdx, password, post.boardIdx)
+                            }
+                        )
                         Spacer(Modifier.height(2.dp))
                     }
                 }
@@ -287,7 +300,11 @@ fun BoardPostCard(
 }
 
 @Composable
-fun CommentItem(comment: CommentDTO) {
+fun CommentItem(
+    comment: CommentDTO,
+    onEditComment: (Long, String, String) -> Unit, // commentIdx, newComment, password
+    onDeleteComment: (Long, String) -> Unit        // commentIdx, password
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Default.Add,
@@ -297,5 +314,52 @@ fun CommentItem(comment: CommentDTO) {
         )
         Spacer(Modifier.width(6.dp))
         Text(comment.comment, fontSize = 14.sp, color = Color(0xFF333333)) // comment.comment
+    }
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var editText by remember { mutableStateOf(comment.comment) }
+    var editPassword by remember { mutableStateOf("") }
+    var deletePassword by remember { mutableStateOf("") }
+
+    Row {
+        Text(comment.comment)
+        TextButton(onClick = { showEditDialog = true }) { Text("수정") }
+        TextButton(onClick = { showDeleteDialog = true }) { Text("삭제") }
+    }
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("댓글 수정") },
+            text = {
+                Column {
+                    OutlinedTextField(value = editText, onValueChange = { editText = it }, label = { Text("댓글 내용") })
+                    OutlinedTextField(value = editPassword, onValueChange = { editPassword = it }, label = { Text("비밀번호") }, singleLine = true)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onEditComment(comment.commentIdx, editText, editPassword)
+                    showEditDialog = false
+                }) { Text("수정") }
+            },
+            dismissButton = { TextButton(onClick = { showEditDialog = false }) { Text("취소") } }
+        )
+    }
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("댓글 삭제") },
+            text = {
+                OutlinedTextField(value = deletePassword, onValueChange = { deletePassword = it }, label = { Text("비밀번호") }, singleLine = true)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteComment(comment.commentIdx, deletePassword)
+                    showDeleteDialog = false
+                }) { Text("삭제") }
+            },
+            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("취소") } }
+        )
     }
 }

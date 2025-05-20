@@ -30,7 +30,7 @@ interface BoardApiService {
     @HTTP(method = "DELETE", path = "/api/v1/board/{boardIdx}", hasBody = true)
     suspend fun deleteBoard(
         @Path("boardIdx") boardIdx: Long,
-        @Body password: String
+        @Body password: Map<String, String>
     ): ApiResponse<Any>
 
 

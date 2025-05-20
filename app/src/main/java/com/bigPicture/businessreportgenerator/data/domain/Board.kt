@@ -16,7 +16,7 @@ data class BoardUiState(
     val comments: List<CommentDTO> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val successMessage: String? = null   // << 이 줄 추가!!!
+    val successMessage: String? = null
 )
 
 
