@@ -46,13 +46,16 @@ fun MainScreen() {
 
                 BoardScreen(
                     uiState = uiState,
-                    onClickItem = { /* ... */ },
+                    onClickItem = { /* ... 상세 화면 이동 등 필요시 구현 */ },
                     onAddPost = { title, content, password -> boardViewModel.createBoard(title, content, password) },
                     onAddComment = { postId, comment, password -> boardViewModel.addComment(postId, comment, password) },
-                    viewModel = viewModel(),
+                    onEditPost = { postId, title, content, password -> boardViewModel.updateBoard(postId, title, content, password) },
+                    onDeletePost = { postId, password -> boardViewModel.deleteBoard(postId, password) },
+                    viewModel = boardViewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
+
         }
     }
 }

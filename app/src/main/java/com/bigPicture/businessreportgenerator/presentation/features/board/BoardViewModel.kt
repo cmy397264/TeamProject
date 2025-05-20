@@ -33,21 +33,6 @@ class BoardViewModel(
         }
     }
 
-    fun fetchBoardDetail(boardIdx: Long) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                val post = boardRepository.getBoardDetail(boardIdx)
-                val comments = boardRepository.getComments(boardIdx)
-                _uiState.update { it.copy(selectedPost = post, comments = comments, isLoading = false) }
-                Log.d(TAG, "게시글/댓글 상세 불러오기 성공: 게시글ID=$boardIdx")
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false) }
-                Log.e(TAG, "게시글/댓글 상세 불러오기 실패: 게시글ID=$boardIdx, ${e.message}", e)
-            }
-        }
-    }
-
     fun createBoard(title: String, content: String, password: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -68,7 +53,7 @@ class BoardViewModel(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 boardRepository.updateBoard(boardIdx, title, contents, password)
-                fetchBoardDetail(boardIdx)
+                fetchBoards()
                 _uiState.update { it.copy(isLoading = false) }
                 Log.d(TAG, "게시글 수정 성공: 게시글ID=$boardIdx")
                 onSuccess?.invoke()
@@ -95,18 +80,6 @@ class BoardViewModel(
         }
     }
 
-    fun fetchComments(boardIdx: Long) {
-        viewModelScope.launch {
-            try {
-                val comments = boardRepository.getComments(boardIdx)
-                _uiState.update { it.copy(comments = comments) }
-                Log.d(TAG, "댓글 목록 불러오기 성공: 게시글ID=$boardIdx, ${comments.size}건")
-            } catch (e: Exception) {
-                Log.e(TAG, "댓글 목록 불러오기 실패: 게시글ID=$boardIdx, ${e.message}", e)
-            }
-        }
-    }
-
     fun addComment(boardIdx: Long, comment: String, password: String, onSuccess: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
@@ -120,8 +93,6 @@ class BoardViewModel(
             }
         }
     }
-
-
 
     fun updateComment(commentIdx: Long, comment: String, password: String, boardIdx: Long, onSuccess: (() -> Unit)? = null) {
         viewModelScope.launch {
