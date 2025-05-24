@@ -15,7 +15,6 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class StockViewModel(val stockRepository: StockRepository) : ViewModel() {
-
     fun registerStock(stockType : String, stockName : String) {
         val call = RetrofitClient.ReportService.registerStock(
             StockRequest(

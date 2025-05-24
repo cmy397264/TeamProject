@@ -19,10 +19,13 @@ import com.bigPicture.businessreportgenerator.data.remote.ApiStatus
 import com.bigPicture.businessreportgenerator.data.remote.ApiViewModel
 import com.bigPicture.businessreportgenerator.data.remote.model.ReportRequest
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
+import com.bigPicture.businessreportgenerator.presentation.features.news.NewsViewModel
 import com.bigPicture.businessreportgenerator.presentation.navigation.AppEntryPoint
+import com.bigPicture.businessreportgenerator.presentation.navigation.LoadingScreen
 import com.bigPicture.businessreportgenerator.ui.theme.BusinessReportGeneratorTheme
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
@@ -37,20 +40,22 @@ class MainActivity : ComponentActivity() {
         val reportComplexity = sharedPrefs.getString("report_complexity", null).toString()
         val interests = sharedPrefs.getStringSet("interests", null)?.toList()
 
-
         setContent {
-
             val apiViewModel: ApiViewModel = viewModel()
+            val newsViewModel : NewsViewModel = viewModel()
             val stockViewModel : StockViewModel = koinViewModel()
             val analystViewModel: AnalystViewmodel = koinViewModel()
 
             val apiState by apiViewModel.state.collectAsState()
 
             LaunchedEffect(Unit) {
+                apiViewModel.updateApiMessage("서버와의 연결을 확인하는 중...")
                 if (apiViewModel.sendPing()) {
                     Log.d("BigPicture", "app fetch : ping success")
+                    apiViewModel.updateApiMessage("사용자 정보를 확인하는 중...")
                     Log.d("BigPicture", "app fetch : onboard is {$onboardingCompleted}")
                     if (onboardingCompleted) {
+                        apiViewModel.updateApiMessage("레포트 정보를 갱신하는 중...")
                         val today = LocalDate.now().toString()
                         stockViewModel.getLatestStocksGroupByDate().firstOrNull()?.let {stocks ->
                             val filteredStocks = stocks.filter { stock ->
@@ -73,6 +78,10 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     Log.d("BigPicture", "app fetch : report request success")
+                    apiViewModel.updateApiMessage("환율 정보를 확인하는 중...")
+                    newsViewModel.fetchInterests()
+                    apiViewModel.updateApiMessage("로딩 완료!")
+                    delay(1000);
                     apiViewModel.updateApiStatus(ApiStatus.DONE)
                 } else {
                     apiViewModel.updateApiStatus(ApiStatus.ERROR)
@@ -85,7 +94,9 @@ class MainActivity : ComponentActivity() {
                     color = Color.White
                 ) {
                     when (apiState.isLoading) {
-                        ApiStatus.LOADING -> LoadingScreen()
+                        ApiStatus.LOADING -> LoadingScreen(
+                            message = apiState.message
+                        )
                         ApiStatus.ERROR -> ErrorScreen()
                         ApiStatus.DONE -> AppEntryPoint()
                     }
@@ -98,9 +109,4 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ErrorScreen(){
     Text("This is ErrorScreen")
-}
-
-@Composable
-fun LoadingScreen(){
-    Text("This is LoadingScreen")
 }

@@ -25,6 +25,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.presentation.common.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -59,6 +61,9 @@ fun NewsScreen(modifier: Modifier = Modifier) {
         else -> DummyNewsData.news
     }
 
+    val newsViewModel : NewsViewModel = viewModel()
+    val interestState by newsViewModel.interests.collectAsState()
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = Color(0xFFF8F9FA) // 애플 스타일 배경색 (밝은 회색)
@@ -76,6 +81,22 @@ fun NewsScreen(modifier: Modifier = Modifier) {
                 Column {
                     // 상단 헤더 제목
                     AppTopBar(title = "Today's News")
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                    ){
+                        Column {
+                            val ko = interestState.ko
+                            val us = interestState.us
+
+                            Text("오늘의 환율")
+                            Text("한국 : ${ko}")
+                            Text("미국 : ${us}")
+                        }
+                    }
 
                     // 탭 영역
                     ScrollableTabRow(
