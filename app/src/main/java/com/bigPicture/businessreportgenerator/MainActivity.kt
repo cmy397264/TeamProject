@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
                                     val reportRequest = ReportRequest(
                                         reportType = "stock",
                                         stockName = stock.stockName,
-                                        riskTolerance = riskTolerance.toString(),
+                                        riskTolerance = riskTolerance,
                                         reportDifficultyLevel = reportComplexity,
                                         interestAreas = interests ?: emptyList()
                                     )
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
                     apiViewModel.updateApiMessage("환율 정보를 확인하는 중...")
                     newsViewModel.fetchInterests()
                     apiViewModel.updateApiMessage("로딩 완료!")
-                    delay(1000);
+                    delay(1000)
                     apiViewModel.updateApiStatus(ApiStatus.DONE)
                 } else {
                     apiViewModel.updateApiStatus(ApiStatus.ERROR)
