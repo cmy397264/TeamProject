@@ -7,7 +7,8 @@ import com.bigPicture.businessreportgenerator.data.domain.AssetType
 
 @Entity(tableName = "assets")
 data class AssetEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
     val name: String,
     val type: AssetType,
     val purchasePrice: Double,

@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.data.local.StockViewModel
 import com.bigPicture.businessreportgenerator.data.remote.ApiStatus
 import com.bigPicture.businessreportgenerator.data.remote.ApiViewModel
-import com.bigPicture.businessreportgenerator.data.remote.model.ReportRequest
+import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
 import com.bigPicture.businessreportgenerator.presentation.navigation.AppEntryPoint
 import com.bigPicture.businessreportgenerator.ui.theme.BusinessReportGeneratorTheme
@@ -47,7 +47,8 @@ class MainActivity : ComponentActivity() {
             val apiState by apiViewModel.state.collectAsState()
 
             LaunchedEffect(Unit) {
-                if (apiViewModel.sendPing()) {
+                val checkPing = true
+                if (checkPing) {
                     Log.d("BigPicture", "app fetch : ping success")
                     Log.d("BigPicture", "app fetch : onboard is {$onboardingCompleted}")
                     if (onboardingCompleted) {
@@ -74,8 +75,6 @@ class MainActivity : ComponentActivity() {
                     }
                     Log.d("BigPicture", "app fetch : report request success")
                     apiViewModel.updateApiStatus(ApiStatus.DONE)
-                } else {
-                    apiViewModel.updateApiStatus(ApiStatus.ERROR)
                 }
             }
 

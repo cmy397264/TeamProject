@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.data.remote.network
 
+import com.bigPicture.businessreportgenerator.data.remote.api.FinanceApiService
 import com.bigPicture.businessreportgenerator.data.remote.api.ReportApiService
 import com.bigPicture.businessreportgenerator.data.remote.api.ScheduleApiService
 import retrofit2.Retrofit
@@ -19,5 +20,9 @@ object RetrofitClient {
 
     val ScheduleService : ScheduleApiService by lazy{
         retrofit.create(ScheduleApiService::class.java)
+    }
+
+    val FinanceService: FinanceApiService by lazy {
+        retrofit.create(FinanceApiService::class.java)
     }
 }

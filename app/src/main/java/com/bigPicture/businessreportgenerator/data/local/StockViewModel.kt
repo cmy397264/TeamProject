@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bigPicture.businessreportgenerator.data.local.entity.StockEntity
 import com.bigPicture.businessreportgenerator.data.local.repository.StockRepository
-import com.bigPicture.businessreportgenerator.data.remote.model.StockRequest
-import com.bigPicture.businessreportgenerator.data.remote.model.StockResponse
+import com.bigPicture.businessreportgenerator.data.remote.dto.StockRequest
+import com.bigPicture.businessreportgenerator.data.remote.dto.StockResponse
 import com.bigPicture.businessreportgenerator.data.remote.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

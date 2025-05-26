@@ -63,7 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.bigPicture.businessreportgenerator.data.remote.model.ReportRequest
+import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.notification.NotificationHelper
 import java.time.DayOfWeek
 

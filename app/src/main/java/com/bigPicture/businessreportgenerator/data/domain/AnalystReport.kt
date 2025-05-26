@@ -1,6 +1,7 @@
 package com.bigPicture.businessreportgenerator.data.domain
 
 import androidx.compose.ui.graphics.Color
+import com.bigPicture.businessreportgenerator.data.local.entity.ReportEntity
 import java.util.Date
 
 /**
@@ -56,7 +57,19 @@ data class AnalystReport(
     val category: String,
     val graphData: List<GraphData>,
     val detailedContent: String
-)
+) {
+    fun toEntity(): ReportEntity {
+        return ReportEntity(
+            id = if (id == 0L) null else id,  // Room autoGenerate이므로 0이면 null 권장
+            title = title,
+            content = detailedContent,
+            summary = summary,
+            date = date.time,      // Date → Long (timestamp)
+            type = category        // category → type
+        )
+    }
+
+}
 
 /**
  * 그래프 데이터 모델
