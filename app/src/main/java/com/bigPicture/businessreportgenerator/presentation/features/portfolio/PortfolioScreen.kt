@@ -74,7 +74,6 @@ import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortfolioScreen(
     modifier: Modifier = Modifier
