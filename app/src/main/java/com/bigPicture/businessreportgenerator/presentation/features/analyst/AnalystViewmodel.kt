@@ -35,6 +35,16 @@ class AnalystViewmodel(
 
     fun createAnalystReportWithFinance(stockName: String) {
         viewModelScope.launch {
+            val exchanges = financeRepository.api.getExchanges().data
+            val stocks = financeRepository.api.getStocks("TSLA").data
+            val usRates = financeRepository.api.getUsInterests().data
+            val krRates = financeRepository.api.getKrInterests().data
+
+            Log.d("BigPicture", "환율 데이터: $exchanges")
+            Log.d("BigPicture", "TSLA 주가 데이터: $stocks")
+            Log.d("BigPicture", "미국 금리 데이터: $usRates")
+            Log.d("BigPicture", "한국 금리 데이터: $krRates")
+
             val graphs = financeRepository.fetchFinanceGraphs(stockName)
             val report = AnalystReport(
                 title = "${stockName} 분석 리포트",

@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.data.domain.AnalystReport
 import com.bigPicture.businessreportgenerator.data.domain.GraphData
-import com.bigPicture.businessreportgenerator.data.domain.GraphType
 import com.bigPicture.businessreportgenerator.data.domain.ReportSentiment
 import com.bigPicture.businessreportgenerator.data.domain.getColor
 import com.bigPicture.businessreportgenerator.data.domain.getDisplayName
@@ -412,9 +411,10 @@ fun GraphPreview(
 ) {
     Box(modifier = modifier) {
         when (graphData.type) {
-            GraphType.LINE_CHART -> LineChartPreview(data = graphData.data)
-            GraphType.BAR_CHART -> BarChartPreview(data = graphData.data)
-            GraphType.PIE_CHART -> PieChartPreview(data = graphData.data)
+            "LINE_CHART" -> LineChartPreview(data = graphData.data)
+            "BAR_CHART" -> BarChartPreview(data = graphData.data)
+            "PIE_CHART" -> PieChartPreview(data = graphData.data)
+            else -> {/* 혹은 에러 출력 */}
         }
 
         // 그래프 제목
@@ -434,7 +434,7 @@ fun GraphPreview(
  */
 @Composable
 fun LineChartPreview(data: Map<String, Float>) {
-    if (data.isEmpty()) return
+    if (data.isEmpty() || data.size < 2) return
 
     val values = data.values.toList()
     val max = values.maxOrNull() ?: 0f
@@ -594,6 +594,11 @@ fun ReportDetailScreen(
     report: AnalystReport,
     onBackPressed: () -> Unit
 ) {
+
+    android.util.Log.d("BigPicture", "ReportDetailScreen graphData.size = ${report.graphData.size}")
+    android.util.Log.d("BigPicture", "ReportDetailScreen graphData = ${report.graphData}")
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -710,6 +715,7 @@ fun ReportDetailScreen(
 
             // 각 그래프 표시
             items(report.graphData) { graphData ->
+                android.util.Log.d("BigPicture", "그래프 카드: ${graphData.title}, type: ${graphData.type}, data size: ${graphData.data.size}")
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -726,11 +732,7 @@ fun ReportDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = when (graphData.type) {
-                                    GraphType.LINE_CHART -> Icons.Default.Info
-                                    GraphType.BAR_CHART -> Icons.Default.Info
-                                    GraphType.PIE_CHART -> Icons.Default.Info
-                                },
+                                imageVector = Icons.Default.Info, // 고정 아이콘!
                                 contentDescription = null,
                                 tint = Color(0xFF007AFF),
                                 modifier = Modifier.size(20.dp)
@@ -766,9 +768,10 @@ fun ReportDetailScreen(
                                 .padding(16.dp)
                         ) {
                             when (graphData.type) {
-                                GraphType.LINE_CHART -> LineChartPreview(data = graphData.data)
-                                GraphType.BAR_CHART -> BarChartPreview(data = graphData.data)
-                                GraphType.PIE_CHART -> PieChartPreview(data = graphData.data)
+                                "LINE_CHART" -> LineChartPreview(data = graphData.data)
+                                "BAR_CHART" -> BarChartPreview(data = graphData.data)
+                                "PIE_CHART" -> PieChartPreview(data = graphData.data)
+                                else -> {/* 혹은 에러 출력 */}
                             }
                         }
 

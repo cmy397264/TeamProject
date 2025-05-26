@@ -2,9 +2,9 @@ package com.bigPicture.businessreportgenerator.presentation.features.analyst
 
 import com.bigPicture.businessreportgenerator.data.domain.AnalystReport
 import com.bigPicture.businessreportgenerator.data.domain.GraphData
-import com.bigPicture.businessreportgenerator.data.domain.GraphType
 import com.bigPicture.businessreportgenerator.data.domain.ReportSentiment
 import java.util.Date
+
 /**
  * 더미 보고서 데이터
  */
@@ -19,7 +19,7 @@ object DummyReportData {
             category = "산업 분석",
             graphData = listOf(
                 GraphData(
-                    type = GraphType.LINE_CHART,
+                    type = "LINE_CHART",
                     title = "반도체 수요 추이",
                     description = "2023-2024 분기별 반도체 시장 수요 추이",
                     data = mapOf(
@@ -32,7 +32,7 @@ object DummyReportData {
                     )
                 ),
                 GraphData(
-                    type = GraphType.PIE_CHART,
+                    type = "PIE_CHART",
                     title = "반도체 부문별 비중",
                     description = "2024년 2분기 반도체 부문별 시장 점유율",
                     data = mapOf(
@@ -79,7 +79,7 @@ object DummyReportData {
             category = "거시경제",
             graphData = listOf(
                 GraphData(
-                    type = GraphType.LINE_CHART,
+                    type = "LINE_CHART",
                     title = "원자재 가격 지수",
                     description = "2023-2024 주요 원자재 가격 지수 변화",
                     data = mapOf(
@@ -92,7 +92,7 @@ object DummyReportData {
                     )
                 ),
                 GraphData(
-                    type = GraphType.BAR_CHART,
+                    type = "BAR_CHART",
                     title = "주요국 물가상승률",
                     description = "2024년 1분기 주요국 물가상승률 비교",
                     data = mapOf(
@@ -140,7 +140,7 @@ object DummyReportData {
             category = "기업 분석",
             graphData = listOf(
                 GraphData(
-                    type = GraphType.BAR_CHART,
+                    type = "BAR_CHART",
                     title = "테슬라 분기별 판매량",
                     description = "2023-2024 테슬라 분기별 차량 판매량 (천 대)",
                     data = mapOf(
@@ -152,7 +152,7 @@ object DummyReportData {
                     )
                 ),
                 GraphData(
-                    type = GraphType.LINE_CHART,
+                    type = "LINE_CHART",
                     title = "테슬라 주가 추이",
                     description = "최근 6개월 테슬라 주가 변동",
                     data = mapOf(
@@ -198,7 +198,7 @@ object DummyReportData {
             category = "부동산",
             graphData = listOf(
                 GraphData(
-                    type = GraphType.LINE_CHART,
+                    type = "LINE_CHART",
                     title = "주요 지역 부동산 가격 지수",
                     description = "2023-2024 주요 지역 부동산 가격 변동률(%)",
                     data = mapOf(
@@ -210,7 +210,7 @@ object DummyReportData {
                     )
                 ),
                 GraphData(
-                    type = GraphType.BAR_CHART,
+                    type = "BAR_CHART",
                     title = "지역별 거래량 변화",
                     description = "전년 동기 대비 2024년 1분기 거래량 변화율(%)",
                     data = mapOf(
@@ -262,7 +262,7 @@ object DummyReportData {
             category = "거시경제",
             graphData = listOf(
                 GraphData(
-                    type = GraphType.BAR_CHART,
+                    type = "BAR_CHART",
                     title = "주요국 경제성장률 전망",
                     description = "2024년 주요국 GDP 성장률 전망(%)",
                     data = mapOf(
@@ -275,7 +275,7 @@ object DummyReportData {
                     )
                 ),
                 GraphData(
-                    type = GraphType.LINE_CHART,
+                    type = "LINE_CHART",
                     title = "글로벌 금리 추이",
                     description = "주요국 기준금리 변화(%)",
                     data = mapOf(

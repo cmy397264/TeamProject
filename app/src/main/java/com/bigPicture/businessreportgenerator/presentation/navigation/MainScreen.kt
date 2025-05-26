@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.navigation
 
+import BoardViewModel
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -17,9 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystScreen
-import com.bigPicture.businessreportgenerator.presentation.features.feed.FeedScreen
 import com.bigPicture.businessreportgenerator.presentation.features.news.NewsScreen
 import com.bigPicture.businessreportgenerator.presentation.features.portfolio.PortfolioScreen
+import com.example.app.features.board.BoardScreen
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MainScreen() {
@@ -38,7 +40,22 @@ fun MainScreen() {
             NavigationItem.Portfolio.route -> PortfolioScreen(modifier = Modifier.padding(paddingValues))
             NavigationItem.Analyst.route -> AnalystScreen(modifier = Modifier.padding(paddingValues))
             NavigationItem.News.route -> NewsScreen(modifier = Modifier.padding(paddingValues))
-            NavigationItem.Feed.route -> FeedScreen(modifier = Modifier.padding(paddingValues))
+            NavigationItem.Board.route -> {
+                val boardViewModel: BoardViewModel = koinViewModel()
+                val uiState by boardViewModel.uiState.collectAsState()
+
+                BoardScreen(
+                    uiState = uiState,
+                    onClickItem = { /* ... 상세 화면 이동 등 필요시 구현 */ },
+                    onAddPost = { title, content, password -> boardViewModel.createBoard(title, content, password) },
+                    onAddComment = { postId, comment, password -> boardViewModel.addComment(postId, comment, password) },
+                    onEditPost = { postId, title, content, password -> boardViewModel.updateBoard(postId, title, content, password) },
+                    onDeletePost = { postId, password -> boardViewModel.deleteBoard(postId, password) },
+                    viewModel = boardViewModel,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+
         }
     }
 }

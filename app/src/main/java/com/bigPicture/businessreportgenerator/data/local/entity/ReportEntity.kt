@@ -14,5 +14,6 @@ data class ReportEntity(
     val content: String,
     val summary: String,
     val date: Long,
-    val type: String
+    val type: String,
+    val graphDataJson: String? = null
 )

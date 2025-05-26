@@ -44,6 +44,14 @@ class MainActivity : ComponentActivity() {
             val stockViewModel : StockViewModel = koinViewModel()
             val analystViewModel: AnalystViewmodel = koinViewModel()
 
+            // 기존 코드와 별개로, 아래처럼 강제로 한번 호출
+            LaunchedEffect(Unit) {
+                // 기존에 있는 report 생성 코드 아래에 추가로
+                analystViewModel.createAnalystReportWithFinance("TSLA")
+                // 로그로 호출됐는지 확인!
+                Log.d("BigPicture", "createAnalystReportWithFinance 호출 완료")
+            }
+
             val apiState by apiViewModel.state.collectAsState()
 
             LaunchedEffect(Unit) {

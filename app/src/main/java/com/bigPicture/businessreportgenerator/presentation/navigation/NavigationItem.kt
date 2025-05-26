@@ -12,12 +12,12 @@ sealed class NavigationItem(val route: String, val icon: ImageVector, val title:
     object Portfolio : NavigationItem("portfolio", Icons.Filled.AccountCircle, "포트폴리오")
     object Analyst : NavigationItem("analyst", Icons.Filled.Search, "AI 애널리스트")
     object News : NavigationItem("news", Icons.Filled.Notifications, "주요 뉴스")
-    object Feed : NavigationItem("feed", Icons.Filled.Face, "피드")
+    object Board : NavigationItem("board", Icons.Filled.Face, "게시판")
 }
 
 val items = listOf(
     NavigationItem.Portfolio,
     NavigationItem.Analyst,
     NavigationItem.News,
-    NavigationItem.Feed
+    NavigationItem.Board
 )

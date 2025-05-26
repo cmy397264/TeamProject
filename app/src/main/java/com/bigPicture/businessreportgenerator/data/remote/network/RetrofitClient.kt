@@ -1,5 +1,7 @@
 package com.bigPicture.businessreportgenerator.data.remote.network
 
+import CommentApiService
+import com.bigPicture.businessreportgenerator.data.remote.api.BoardApiService
 import com.bigPicture.businessreportgenerator.data.remote.api.FinanceApiService
 import com.bigPicture.businessreportgenerator.data.remote.api.ReportApiService
 import com.bigPicture.businessreportgenerator.data.remote.api.ScheduleApiService
@@ -20,6 +22,14 @@ object RetrofitClient {
 
     val ScheduleService : ScheduleApiService by lazy{
         retrofit.create(ScheduleApiService::class.java)
+    }
+
+    val BoardService: BoardApiService by lazy {
+        retrofit.create(BoardApiService::class.java)
+    }
+
+    val CommentService: CommentApiService by lazy {
+        retrofit.create(CommentApiService::class.java)
     }
 
     val FinanceService: FinanceApiService by lazy {
