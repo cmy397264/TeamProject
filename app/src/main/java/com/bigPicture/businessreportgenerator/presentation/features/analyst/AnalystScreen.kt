@@ -69,7 +69,6 @@ import com.bigPicture.businessreportgenerator.data.domain.GraphType
 import com.bigPicture.businessreportgenerator.data.domain.ReportSentiment
 import com.bigPicture.businessreportgenerator.data.domain.getColor
 import com.bigPicture.businessreportgenerator.data.domain.getDisplayName
-import com.bigPicture.businessreportgenerator.presentation.common.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -104,10 +103,10 @@ fun AnalystScreen(modifier: Modifier = Modifier) {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    stickyHeader {
-                        AppTopBar(title = "My BigPicture")
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+//                    stickyHeader {
+//                        AppTopBar(title = "My BigPicture")
+//                        Spacer(modifier = Modifier.height(16.dp))
+//                    }
 
                     // 필터 영역
                     stickyHeader {

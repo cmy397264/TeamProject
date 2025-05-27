@@ -28,9 +28,9 @@ class NewsViewModel() : ViewModel() {
                     val koData = responseKo.body()
                     val usData = responseUs.body()
                     if (koData != null)
-                        _interests.value.ko = koData.data?.interestRate ?: 0.0
+                        _interests.value.ko = koData.data.firstOrNull()?.interestRate ?: 0.0
                     if (usData != null)
-                        _interests.value.us = usData.data?.interestRate ?: 0.0
+                        _interests.value.us = usData.data.firstOrNull()?.interestRate ?: 0.0
                 } else {
                     Log.e("BigPicture", "불러온 환율 정보가 올바르지 않습니다.")
                 }

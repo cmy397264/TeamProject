@@ -67,7 +67,6 @@ import androidx.compose.ui.window.Dialog
 import com.bigPicture.businessreportgenerator.data.domain.Asset
 import com.bigPicture.businessreportgenerator.data.domain.AssetType
 import com.bigPicture.businessreportgenerator.data.local.StockViewModel
-import com.bigPicture.businessreportgenerator.presentation.common.AppTopBar
 import com.bigPicture.businessreportgenerator.presentation.common.PieChart
 import com.bigPicture.businessreportgenerator.presentation.common.PieChartData
 import org.koin.androidx.compose.koinViewModel
@@ -111,7 +110,7 @@ fun PortfolioScreen(
         color = Color(0xFFF8F9FA)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            AppTopBar(title = "My Portfolio")
+//            AppTopBar(title = "My Portfolio")
 
             Column(
                 modifier = Modifier
