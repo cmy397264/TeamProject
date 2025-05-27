@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.data.local.StockViewModel
 import com.bigPicture.businessreportgenerator.data.remote.ApiStatus
 import com.bigPicture.businessreportgenerator.data.remote.ApiViewModel
-import com.bigPicture.businessreportgenerator.data.remote.model.ReportRequest
+import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
 import com.bigPicture.businessreportgenerator.presentation.navigation.AppEntryPoint
 import com.bigPicture.businessreportgenerator.ui.theme.BusinessReportGeneratorTheme
@@ -44,10 +44,19 @@ class MainActivity : ComponentActivity() {
             val stockViewModel : StockViewModel = koinViewModel()
             val analystViewModel: AnalystViewmodel = koinViewModel()
 
+            // 기존 코드와 별개로, 아래처럼 강제로 한번 호출
+            LaunchedEffect(Unit) {
+                // 기존에 있는 report 생성 코드 아래에 추가로
+                analystViewModel.createAnalystReportWithFinance("TSLA")
+                // 로그로 호출됐는지 확인!
+                Log.d("BigPicture", "createAnalystReportWithFinance 호출 완료")
+            }
+
             val apiState by apiViewModel.state.collectAsState()
 
             LaunchedEffect(Unit) {
-                if (apiViewModel.sendPing()) {
+                val checkPing = true
+                if (checkPing) {
                     Log.d("BigPicture", "app fetch : ping success")
                     Log.d("BigPicture", "app fetch : onboard is {$onboardingCompleted}")
                     if (onboardingCompleted) {
@@ -74,8 +83,6 @@ class MainActivity : ComponentActivity() {
                     }
                     Log.d("BigPicture", "app fetch : report request success")
                     apiViewModel.updateApiStatus(ApiStatus.DONE)
-                } else {
-                    apiViewModel.updateApiStatus(ApiStatus.ERROR)
                 }
             }
 

@@ -1,4 +1,4 @@
-package com.bigPicture.businessreportgenerator.data.remote.model
+package com.bigPicture.businessreportgenerator.data.remote.domain
 
 data class Schedule(
     val status: String,

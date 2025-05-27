@@ -1,19 +1,29 @@
 package com.bigPicture.businessreportgenerator.data.mapper
 
+import android.util.Log
 import com.bigPicture.businessreportgenerator.data.domain.AnalystReport
+import com.bigPicture.businessreportgenerator.data.domain.GraphData
 import com.bigPicture.businessreportgenerator.data.domain.ReportSentiment
 import com.bigPicture.businessreportgenerator.data.local.entity.ReportEntity
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.util.Date
 
-/** Room Entity → 화면용 AnalystReport */
-fun ReportEntity.toAnalystReport(): AnalystReport =
-    AnalystReport(
-        id              = id ?: 0L,          // Entity id 가 Long? 일 때 null → 0L
-        title           = title,
-        summary         = summary,
-        date            = Date(date),
-        sentiment       = ReportSentiment.NEUTRAL, // 서버에서 값 주면 바꿔주세요
-        category        = type,                    // Entity.type(String) 그대로
-        graphData       = emptyList(),             // 아직 그래프 없음
+
+fun ReportEntity.toAnalystReport(): AnalystReport {
+    val gson = Gson()
+    val typeToken = object : TypeToken<List<GraphData>>(){}.type
+    val graphList = graphDataJson?.let { gson.fromJson<List<GraphData>>(it, typeToken) } ?: emptyList()
+    Log.d("BigPicture", "toAnalystReport 파싱 결과: $graphList")
+
+    return AnalystReport(
+        id = id ?: 0L,
+        title = title,
+        summary = summary,
+        date = Date(date),
+        sentiment = ReportSentiment.NEUTRAL, // 필요시 따로 저장/복원
+        category = type,        // ← ReportEntity의 type 컬럼!
+        graphData = graphList,  // ← 위에서 파싱한 값!
         detailedContent = content
     )
+}

@@ -9,8 +9,9 @@ import com.bigPicture.businessreportgenerator.data.domain.ReportSentiment
 import com.bigPicture.businessreportgenerator.data.local.entity.ReportEntity
 import com.bigPicture.businessreportgenerator.data.local.repository.ReportRepository
 import com.bigPicture.businessreportgenerator.data.mapper.toAnalystReport
-import com.bigPicture.businessreportgenerator.data.remote.model.ReportRequest
+import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.data.remote.network.RetrofitClient
+import com.bigPicture.businessreportgenerator.data.remote.repository.FinanceStatsRepository
 import com.bigPicture.businessreportgenerator.di.ServiceLocator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
 
 /**
  * Room → Repository → ViewModel → UI   (DI 프레임워크 없이)
@@ -29,13 +31,43 @@ class AnalystViewmodel(
     context: Context                    // Factory 에서 전달
 ) : ViewModel() {
 
+    private val financeRepository = FinanceStatsRepository(RetrofitClient.FinanceService)
+
+    fun createAnalystReportWithFinance(stockName: String) {
+        viewModelScope.launch {
+            val exchanges = financeRepository.api.getExchanges().data
+            val stocks = financeRepository.api.getStocks("TSLA").data
+            val usRates = financeRepository.api.getUsInterests().data
+            val krRates = financeRepository.api.getKrInterests().data
+
+            Log.d("BigPicture", "환율 데이터: $exchanges")
+            Log.d("BigPicture", "TSLA 주가 데이터: $stocks")
+            Log.d("BigPicture", "미국 금리 데이터: $usRates")
+            Log.d("BigPicture", "한국 금리 데이터: $krRates")
+
+            val graphs = financeRepository.fetchFinanceGraphs(stockName)
+            val report = AnalystReport(
+                title = "${stockName} 분석 리포트",
+                summary = "AI 기반 금융지표와 시장 주요 동향 요약",
+                category = "금융지표",
+                date = Date(),
+                sentiment = ReportSentiment.NEUTRAL,
+                detailedContent = "# ${stockName} 주요 이슈\n\n- 최근 시장 동향\n- 주요 금융지표 변화\n",
+                graphData = graphs
+            )
+            // 예: Room에 저장
+            save(report.toEntity()) // toEntity()는 Domain → Entity 변환 함수
+            // 필요시 _selectedReport.value = report 등 UI에 바로 할당도 가능
+        }
+    }
+
+
     /* ──────────────────────────────────────────────── *
      * 1) Repository & DB stream
      * ──────────────────────────────────────────────── */
     private val repository: ReportRepository =
         ServiceLocator.provideReportRepository(context)
 
-    /** Room → Domain(AnalystReport) */
     private val reportsFlow: StateFlow<List<AnalystReport>> =
         repository.observeReports()
             .map { list -> list.map { it.toAnalystReport() } }

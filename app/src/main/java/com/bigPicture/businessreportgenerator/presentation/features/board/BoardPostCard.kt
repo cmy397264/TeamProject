@@ -1,11 +1,18 @@
 package com.bigPicture.businessreportgenerator.presentation.features.board
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,17 +20,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,13 +46,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bigPicture.businessreportgenerator.data.remote.model.BoardDTO
 import com.bigPicture.businessreportgenerator.data.remote.model.CommentDTO
+
+// 색상 팔레트 정의
+object BoardColors {
+    val Primary = Color(0xFF007AFF)
+    val Secondary = Color(0xFF5856D6)
+    val Success = Color(0xFF34C759)
+    val Warning = Color(0xFFFF9500)
+    val Error = Color(0xFFFF3B30)
+    val Background = Color(0xFFF2F2F7)
+    val Surface = Color.White
+    val OnSurface = Color(0xFF1C1C1E)
+    val OnSurfaceVariant = Color(0xFF8E8E93)
+    val Outline = Color(0xFFE5E5EA)
+    val OutlineVariant = Color(0xFFF2F2F7)
+}
 
 @Composable
 fun BoardPostCard(
@@ -50,7 +79,7 @@ fun BoardPostCard(
     onDeletePost: (Long, String) -> Unit,
     onEditComment: (Long, String, String, Long) -> Unit,
     onDeleteComment: (Long, String, Long) -> Unit
-){
+) {
     var commentText by remember { mutableStateOf("") }
     var passwordText by remember { mutableStateOf("") }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -59,171 +88,409 @@ fun BoardPostCard(
     var editContent by remember { mutableStateOf(post.contents) }
     var editPassword by remember { mutableStateOf("") }
     var deletePassword by remember { mutableStateOf("") }
+    var isExpanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp, horizontal = 4.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp))
-            .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 22.dp, vertical = 16.dp)) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        post.title,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 21.sp,
-                            color = Color(0xFF222222)
-                        ),
-                        maxLines = 1
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        post.contents,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFF4B4B4B),
-                            fontSize = 15.sp
-                        ),
-                        maxLines = 5
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    TextButton(onClick = { showEditDialog = true }, content = {
-                        Text("수정", color = Color(0xFF636366), fontSize = 14.sp)
-                    })
-                    TextButton(onClick = { showDeleteDialog = true }, content = {
-                        Text("삭제", color = Color(0xFFE04A4A), fontSize = 14.sp)
-                    })
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-            Divider(thickness = 1.dp, color = Color(0xFFF2F2F7), modifier = Modifier.padding(vertical = 2.dp))
+                isExpanded = !isExpanded
+                onClick()
+            },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = BoardColors.Surface),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 2.dp
+        )
+    ) {
+        Column {
+            // 메인 게시글 헤더
+            PostHeader(
+                post = post,
+                onEditClick = { showEditDialog = true },
+                onDeleteClick = { showDeleteDialog = true }
+            )
 
-            // 댓글 영역
-            Column(Modifier.fillMaxWidth()) {
-                if (post.comments.isEmpty()) {
-                    Text(
-                        "댓글이 아직 없습니다.",
-                        color = Color(0xFFB0B3B8),
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(bottom = 4.dp)
+            // 게시글 내용
+            PostContent(post = post)
+
+            // 댓글 영역 (애니메이션과 함께 확장)
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
                     )
-                } else {
-                    post.comments.forEach { comment ->
-                        CommentItem(
-                            comment = comment,
-                            onEditComment = { commentIdx, newComment, password ->
-                                onEditComment(commentIdx, newComment, password, post.boardIdx)
-                            },
-                            onDeleteComment = { commentIdx, password ->
-                                onDeleteComment(commentIdx, password, post.boardIdx)
-                            }
-                        )
-                    }
-                }
-                // 댓글 입력
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
-                ) {
-                    OutlinedTextField(
-                        value = commentText,
-                        onValueChange = { commentText = it },
-                        modifier = Modifier.weight(2.2f).padding(end = 6.dp),
-                        placeholder = { Text("댓글을 입력하세요", fontSize = 14.sp, color = Color(0xFFB0B3B8)) },
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFD0D0D0),
-                            unfocusedBorderColor = Color(0xFFE5E5EA)
-                        )
+                ) + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Column {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = BoardColors.OutlineVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp)
                     )
-                    OutlinedTextField(
-                        value = passwordText,
-                        onValueChange = { passwordText = it },
-                        modifier = Modifier.weight(1f).padding(end = 4.dp),
-                        placeholder = { Text("비밀번호", fontSize = 14.sp, color = Color(0xFFB0B3B8)) },
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFD0D0D0),
-                            unfocusedBorderColor = Color(0xFFE5E5EA)
-                        )
-                    )
-                    TextButton(
-                        onClick = {
-                            if (commentText.isNotBlank() && passwordText.isNotBlank()) {
-                                onAddComment(post.boardIdx, commentText.trim(), passwordText.trim())
-                                commentText = ""
-                                passwordText = ""
-                            }
+
+                    CommentsSection(
+                        comments = post.comments,
+                        commentText = commentText,
+                        passwordText = passwordText,
+                        onCommentTextChange = { commentText = it },
+                        onPasswordTextChange = { passwordText = it },
+                        onAddComment = {
+                            onAddComment(post.boardIdx, commentText.trim(), passwordText.trim())
+                            commentText = ""
+                            passwordText = ""
                         },
-                        enabled = commentText.isNotBlank() && passwordText.isNotBlank(),
-                        shape = RoundedCornerShape(10.dp),
-                    ) {
-                        Text("등록", color = Color(0xFF007AFF), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        onEditComment = { commentIdx, newComment, password ->
+                            onEditComment(commentIdx, newComment, password, post.boardIdx)
+                        },
+                        onDeleteComment = { commentIdx, password ->
+                            onDeleteComment(commentIdx, password, post.boardIdx)
+                        }
+                    )
+                }
+            }
+
+            // 댓글 수 표시 (접힌 상태에서)
+            if (!isExpanded) {
+                CommentCountIndicator(commentCount = post.comments.size)
+            }
+        }
+    }
+
+    // 다이얼로그들
+    EditPostDialog(
+        show = showEditDialog,
+        title = editTitle,
+        content = editContent,
+        password = editPassword,
+        onTitleChange = { editTitle = it },
+        onContentChange = { editContent = it },
+        onPasswordChange = { editPassword = it },
+        onConfirm = {
+            onEditPost(post.boardIdx, editTitle, editContent, editPassword)
+            showEditDialog = false
+            editPassword = ""
+        },
+        onDismiss = { showEditDialog = false }
+    )
+
+    DeletePostDialog(
+        show = showDeleteDialog,
+        password = deletePassword,
+        onPasswordChange = { deletePassword = it },
+        onConfirm = {
+            onDeletePost(post.boardIdx, deletePassword)
+            showDeleteDialog = false
+            deletePassword = ""
+        },
+        onDismiss = { showDeleteDialog = false }
+    )
+}
+
+@Composable
+private fun PostHeader(
+    post: BoardDTO,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 프로필 아이콘
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(BoardColors.Primary, BoardColors.Secondary)
+                    ),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Author",
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = post.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = BoardColors.OnSurface
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "익명",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = BoardColors.OnSurfaceVariant
+                )
+            )
+        }
+
+        // 액션 버튼들
+        Row {
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = BoardColors.OnSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            IconButton(
+                onClick = onDeleteClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = BoardColors.Error,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PostContent(post: BoardDTO) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 0.dp)
+    ) {
+        Text(
+            text = post.contents,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = BoardColors.OnSurface,
+                lineHeight = 22.sp
+            ),
+            maxLines = if (post.contents.length > 100) 3 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun CommentCountIndicator(commentCount: Int) {
+    if (commentCount > 0) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            color = BoardColors.OutlineVariant,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Comments",
+                    tint = BoardColors.OnSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "댓글 ${commentCount}개",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = BoardColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "탭하여 보기",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = BoardColors.Primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+        }
+    } else {
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun CommentsSection(
+    comments: List<CommentDTO>,
+    commentText: String,
+    passwordText: String,
+    onCommentTextChange: (String) -> Unit,
+    onPasswordTextChange: (String) -> Unit,
+    onAddComment: () -> Unit,
+    onEditComment: (Long, String, String) -> Unit,
+    onDeleteComment: (Long, String) -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(20.dp)
+    ) {
+        // 댓글 목록
+        if (comments.isEmpty()) {
+            EmptyCommentsPlaceholder()
+        } else {
+            comments.forEach { comment ->
+                CommentItem(
+                    comment = comment,
+                    onEditComment = onEditComment,
+                    onDeleteComment = onDeleteComment
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 댓글 입력 영역
+        CommentInputSection(
+            commentText = commentText,
+            passwordText = passwordText,
+            onCommentTextChange = onCommentTextChange,
+            onPasswordTextChange = onPasswordTextChange,
+            onAddComment = onAddComment
+        )
+    }
+}
+
+@Composable
+private fun EmptyCommentsPlaceholder() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "No comments",
+                tint = BoardColors.OnSurfaceVariant,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "첫 번째 댓글을 남겨보세요!",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = BoardColors.OnSurfaceVariant
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun CommentInputSection(
+    commentText: String,
+    passwordText: String,
+    onCommentTextChange: (String) -> Unit,
+    onPasswordTextChange: (String) -> Unit,
+    onAddComment: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = BoardColors.OutlineVariant,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // 댓글 입력 필드
+            OutlinedTextField(
+                value = commentText,
+                onValueChange = onCommentTextChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(
+                        "댓글을 입력하세요...",
+                        color = BoardColors.OnSurfaceVariant
+                    )
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = BoardColors.Primary,
+                    unfocusedBorderColor = BoardColors.Outline,
+                    focusedContainerColor = BoardColors.Surface,
+                    unfocusedContainerColor = BoardColors.Surface
+                ),
+                minLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 비밀번호와 등록 버튼
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = passwordText,
+                    onValueChange = onPasswordTextChange,
+                    modifier = Modifier.weight(1f),
+                    placeholder = {
+                        Text(
+                            "비밀번호",
+                            color = BoardColors.OnSurfaceVariant
+                        )
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = BoardColors.Primary,
+                        unfocusedBorderColor = BoardColors.Outline,
+                        focusedContainerColor = BoardColors.Surface,
+                        unfocusedContainerColor = BoardColors.Surface
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Surface(
+                    onClick = onAddComment,
+                    enabled = commentText.isNotBlank() && passwordText.isNotBlank(),
+                    modifier = Modifier.size(48.dp),
+                    shape = CircleShape,
+                    color = if (commentText.isNotBlank() && passwordText.isNotBlank())
+                        BoardColors.Primary else BoardColors.Outline
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Send",
+                            tint = if (commentText.isNotBlank() && passwordText.isNotBlank())
+                                Color.White else BoardColors.OnSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
             }
-        }
-        // 수정/삭제 다이얼로그 (기존대로)
-        if (showEditDialog) {
-            AlertDialog(
-                onDismissRequest = { showEditDialog = false },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onEditPost(post.boardIdx, editTitle, editContent, editPassword)
-                            showEditDialog = false
-                            editPassword = ""
-                        }
-                    ) { Text("수정") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showEditDialog = false }) { Text("취소") }
-                },
-                title = { Text("글 수정") },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedTextField(value = editTitle, onValueChange = { editTitle = it }, label = { Text("제목") }, singleLine = true)
-                        OutlinedTextField(value = editContent, onValueChange = { editContent = it }, label = { Text("내용") })
-                        OutlinedTextField(value = editPassword, onValueChange = { editPassword = it }, label = { Text("비밀번호") }, singleLine = true)
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = Color.White
-            )
-        }
-        if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onDeletePost(post.boardIdx, deletePassword)
-                            showDeleteDialog = false
-                            deletePassword = ""
-                        }
-                    ) { Text("삭제", color = Color.Red) }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) { Text("취소") }
-                },
-                title = { Text("글 삭제") },
-                text = {
-                    OutlinedTextField(value = deletePassword, onValueChange = { deletePassword = it }, label = { Text("비밀번호") }, singleLine = true)
-                },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = Color.White
-            )
         }
     }
 }
@@ -240,118 +507,310 @@ fun CommentItem(
     var editPassword by remember { mutableStateOf("") }
     var deletePassword by remember { mutableStateOf("") }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = BoardColors.Surface,
+        shape = RoundedCornerShape(12.dp)
     ) {
-        // 댓글 아이콘 (프로필)
-        Box(
-            Modifier
-                .size(22.dp)
-                .background(Color(0xFFE5E5EA), shape = RoundedCornerShape(11.dp))
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.Top
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "유저",
+            // 댓글 작성자 아이콘
+            Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(16.dp),
-                tint = Color(0xFFB0B3B8)
-            )
-        }
-        Spacer(Modifier.width(8.dp))
-        Text(
-            comment.comment,
-            fontSize = 15.sp,
-            color = Color(0xFF222222),
-            modifier = Modifier.weight(1f)
-        )
-        // 오른쪽 끝 수정/삭제 버튼 (Apple 스타일: flat & gray)
-        TextButton(
-            onClick = { showEditDialog = true },
-            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
-        ) {
-            Text("수정", color = Color(0xFF636366), fontSize = 13.sp)
-        }
-        TextButton(
-            onClick = { showDeleteDialog = true },
-            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
-        ) {
-            Text("삭제", color = Color(0xFFE04A4A), fontSize = 13.sp)
+                    .size(32.dp)
+                    .background(BoardColors.OutlineVariant, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Commenter",
+                    tint = BoardColors.OnSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "익명",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = BoardColors.OnSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = comment.comment,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = BoardColors.OnSurface,
+                        lineHeight = 20.sp
+                    )
+                )
+            }
+
+            // 댓글 액션 버튼들
+            Row {
+                IconButton(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit comment",
+                        tint = BoardColors.OnSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                IconButton(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete comment",
+                        tint = BoardColors.Error,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
     }
 
-    // -------- 수정 다이얼로그 --------
-    if (showEditDialog) {
+    // 댓글 수정/삭제 다이얼로그
+    EditCommentDialog(
+        show = showEditDialog,
+        text = editText,
+        password = editPassword,
+        onTextChange = { editText = it },
+        onPasswordChange = { editPassword = it },
+        onConfirm = {
+            if (editText.isNotBlank() && editPassword.isNotBlank()) {
+                onEditComment(comment.commentIdx, editText, editPassword)
+                showEditDialog = false
+                editPassword = ""
+            }
+        },
+        onDismiss = { showEditDialog = false }
+    )
+
+    DeleteCommentDialog(
+        show = showDeleteDialog,
+        password = deletePassword,
+        onPasswordChange = { deletePassword = it },
+        onConfirm = {
+            if (deletePassword.isNotBlank()) {
+                onDeleteComment(comment.commentIdx, deletePassword)
+                showDeleteDialog = false
+                deletePassword = ""
+            }
+        },
+        onDismiss = { showDeleteDialog = false }
+    )
+}
+
+// 다이얼로그 컴포넌트들
+@Composable
+private fun EditPostDialog(
+    show: Boolean,
+    title: String,
+    content: String,
+    password: String,
+    onTitleChange: (String) -> Unit,
+    onContentChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
         AlertDialog(
-            onDismissRequest = { showEditDialog = false },
-            title = { Text("댓글 수정", fontWeight = FontWeight.Bold) },
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("수정", color = BoardColors.Primary, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("취소", color = BoardColors.OnSurfaceVariant)
+                }
+            },
+            title = {
+                Text(
+                    "게시글 수정",
+                    fontWeight = FontWeight.Bold,
+                    color = BoardColors.OnSurface
+                )
+            },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
-                        value = editText,
-                        onValueChange = { editText = it },
-                        label = { Text("댓글 내용") },
-                        shape = RoundedCornerShape(14.dp)
+                        value = title,
+                        onValueChange = onTitleChange,
+                        label = { Text("제목") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     OutlinedTextField(
-                        value = editPassword,
-                        onValueChange = { editPassword = it },
+                        value = content,
+                        onValueChange = onContentChange,
+                        label = { Text("내용") },
+                        shape = RoundedCornerShape(12.dp),
+                        minLines = 3
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = onPasswordChange,
                         label = { Text("비밀번호") },
                         singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (editText.isNotBlank() && editPassword.isNotBlank()) {
-                            onEditComment(comment.commentIdx, editText, editPassword)
-                            showEditDialog = false
-                        }
-                    }
-                ) { Text("수정", color = Color(0xFF007AFF), fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) { Text("취소", color = Color.Gray) }
-            },
-            shape = RoundedCornerShape(16.dp),
-            containerColor = Color.White
+            shape = RoundedCornerShape(20.dp),
+            containerColor = BoardColors.Surface
         )
     }
+}
 
-    // -------- 삭제 다이얼로그 --------
-    if (showDeleteDialog) {
+@Composable
+private fun DeletePostDialog(
+    show: Boolean,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("댓글 삭제", fontWeight = FontWeight.Bold) },
-            text = {
-                OutlinedTextField(
-                    value = deletePassword,
-                    onValueChange = { deletePassword = it },
-                    label = { Text("비밀번호") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp)
-                )
-            },
+            onDismissRequest = onDismiss,
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (deletePassword.isNotBlank()) {
-                            onDeleteComment(comment.commentIdx, deletePassword)
-                            showDeleteDialog = false
-                        }
-                    }
-                ) { Text("삭제", color = Color.Red, fontWeight = FontWeight.Bold) }
+                TextButton(onClick = onConfirm) {
+                    Text("삭제", color = BoardColors.Error, fontWeight = FontWeight.Bold)
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("취소", color = Color.Gray) }
+                TextButton(onClick = onDismiss) {
+                    Text("취소", color = BoardColors.OnSurfaceVariant)
+                }
             },
-            shape = RoundedCornerShape(16.dp),
-            containerColor = Color.White
+            title = {
+                Text(
+                    "게시글 삭제",
+                    fontWeight = FontWeight.Bold,
+                    color = BoardColors.OnSurface
+                )
+            },
+            text = {
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = onPasswordChange,
+                    label = { Text("비밀번호를 입력하세요") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = BoardColors.Surface
+        )
+    }
+}
+
+@Composable
+private fun EditCommentDialog(
+    show: Boolean,
+    text: String,
+    password: String,
+    onTextChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("수정", color = BoardColors.Primary, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("취소", color = BoardColors.OnSurfaceVariant)
+                }
+            },
+            title = {
+                Text(
+                    "댓글 수정",
+                    fontWeight = FontWeight.Bold,
+                    color = BoardColors.OnSurface
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = onTextChange,
+                        label = { Text("댓글 내용") },
+                        shape = RoundedCornerShape(12.dp),
+                        minLines = 2
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = onPasswordChange,
+                        label = { Text("비밀번호") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = BoardColors.Surface
+        )
+    }
+}
+
+@Composable
+private fun DeleteCommentDialog(
+    show: Boolean,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("삭제", color = BoardColors.Error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("취소", color = BoardColors.OnSurfaceVariant)
+                }
+            },
+            title = {
+                Text(
+                    "댓글 삭제",
+                    fontWeight = FontWeight.Bold,
+                    color = BoardColors.OnSurface
+                )
+            },
+            text = {
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = onPasswordChange,
+                    label = { Text("비밀번호를 입력하세요") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = BoardColors.Surface
         )
     }
 }

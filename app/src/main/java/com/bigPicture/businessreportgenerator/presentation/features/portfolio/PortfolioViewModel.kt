@@ -10,31 +10,48 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class PortfolioState(
+data class ModernPortfolioState(
     val assets: List<Asset> = emptyList(),
-    val sampleAssets : List<Asset> = emptyList(),
+    val sampleAssets: List<Asset> = emptyList(),
     val isAddAssetDialogVisible: Boolean = false,
-    val isSamplePortfolioDialogVisible: Boolean = false, // 샘플 포트폴리오 모달 띄우기 유무
-    val totalPortfolioValue: Double = 0.0
+    val isSamplePortfolioDialogVisible: Boolean = false,
+    val totalPortfolioValue: Double = 0.0,
+    val isLoading: Boolean = false,
+    val currentInvestmentTip: InvestmentTip? = null
 )
 
 class PortfolioViewModel(private val repository: AssetRepository) : ViewModel() {
 
-    private val _state = MutableStateFlow(PortfolioState())
-    val state: StateFlow<PortfolioState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(ModernPortfolioState())
+    val state: StateFlow<ModernPortfolioState> = _state.asStateFlow()
 
     init {
         // 앱 시작 시 데이터베이스에서 자산 목록 로드
+        loadAssets()
+        // 랜덤 투자 팁 설정
+        setRandomInvestmentTip()
+    }
+
+    private fun loadAssets() {
         viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+
             repository.getAllAssets().collect { assets ->
                 val totalValue = assets.sumOf { it.purchasePrice }
                 _state.update {
                     it.copy(
                         assets = assets,
-                        totalPortfolioValue = totalValue
+                        totalPortfolioValue = totalValue,
+                        isLoading = false
                     )
                 }
             }
+        }
+    }
+
+    private fun setRandomInvestmentTip() {
+        _state.update {
+            it.copy(currentInvestmentTip = ModernPortfolioSampleData.getRandomInvestmentTip())
         }
     }
 
@@ -42,6 +59,12 @@ class PortfolioViewModel(private val repository: AssetRepository) : ViewModel() 
         viewModelScope.launch {
             repository.insertAsset(asset)
             hideAddAssetDialog()
+        }
+    }
+
+    fun removeAsset(asset: Asset) {
+        viewModelScope.launch {
+            repository.deleteAsset(asset)
         }
     }
 
@@ -53,12 +76,13 @@ class PortfolioViewModel(private val repository: AssetRepository) : ViewModel() 
         _state.update { it.copy(isAddAssetDialogVisible = false) }
     }
 
-
     fun showSamplePortfolioDialog() {
-        _state.update { it.copy(
-            isSamplePortfolioDialogVisible = true,
-            sampleAssets                  = DummyPortfolioData.portfolios
-        ) }
+        _state.update {
+            it.copy(
+                isSamplePortfolioDialogVisible = true,
+                sampleAssets = ModernPortfolioSampleData.samplePortfolios
+            )
+        }
     }
 
     fun hideSamplePortfolioDialog() {
@@ -66,6 +90,20 @@ class PortfolioViewModel(private val repository: AssetRepository) : ViewModel() 
     }
 
     fun loadSamplePortfolio() {
-        _state.update { it.copy(assets = emptyList(), totalPortfolioValue = 0.0) }
+        viewModelScope.launch {
+            // 기존 자산들 삭제
+            _state.value.assets.forEach { asset ->
+                repository.deleteAsset(asset)
+            }
+
+            // 샘플 자산들 추가
+            ModernPortfolioSampleData.samplePortfolios.forEach { asset ->
+                repository.insertAsset(asset)
+            }
+        }
+    }
+
+    fun refreshInvestmentTip() {
+        setRandomInvestmentTip()
     }
 }
