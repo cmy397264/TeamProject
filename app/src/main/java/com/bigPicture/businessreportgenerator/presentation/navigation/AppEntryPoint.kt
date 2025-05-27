@@ -10,23 +10,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.ErrorScreen
 import com.bigPicture.businessreportgenerator.data.local.StockViewModel
 import com.bigPicture.businessreportgenerator.data.remote.ApiStatus
 import com.bigPicture.businessreportgenerator.data.remote.ApiViewModel
+import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
 import com.bigPicture.businessreportgenerator.presentation.features.news.NewsViewModel
 import com.bigPicture.businessreportgenerator.presentation.onboarding.OnboardingScreen
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
-import androidx.core.content.edit
-import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
-import kotlinx.coroutines.delay
 
 /**
  * 앱 진입점 화면 - 온보딩 또는 메인 화면 표시
@@ -79,7 +79,7 @@ fun AppEntryPoint() {
                 }
             }
             apiViewModel.updateApiMessage("환율 불러오는 중...")
-            newsViewModel.fetchInterests()
+            newsViewModel.fetchExchange()
             apiViewModel.updateApiMessage("로딩 완료")
             delay(500)
             apiViewModel.updateApiStatus(ApiStatus.DONE)

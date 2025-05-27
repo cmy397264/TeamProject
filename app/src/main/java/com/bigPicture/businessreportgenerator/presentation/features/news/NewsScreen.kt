@@ -64,9 +64,8 @@ fun NewsScreen(modifier: Modifier = Modifier) {
     }
 
     val newsViewModel : NewsViewModel = viewModel()
-    val interestState by newsViewModel.interests.collectAsState()
-    val ko = interestState.ko.toString()
-    val us = interestState.us.toString()
+    val exchangeState by newsViewModel.exchange.collectAsState()
+    val ko = exchangeState.ko.toString()
 
     val listState = rememberLazyListState()
     val hideExchangeRate by remember {
@@ -94,7 +93,6 @@ fun NewsScreen(modifier: Modifier = Modifier) {
                     AnimatedVisibility(visible = !hideExchangeRate) {
                         ExchangeRateCard(
                             koRate = ko,
-                            usRate = us,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
@@ -298,7 +296,7 @@ fun ExchangeRateItem(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = rate,
+            text = "${rate} 원/$",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             color = Color(0xFF007AFF)
@@ -310,7 +308,6 @@ fun ExchangeRateItem(
 @Composable
 fun ExchangeRateCard(
     koRate: String,
-    usRate: String,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -335,8 +332,7 @@ fun ExchangeRateCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                ExchangeRateItem(country = "🇰🇷 원화", rate = koRate)
-                ExchangeRateItem(country = "🇺🇸 달러", rate = usRate)
+                ExchangeRateItem(country = "🇰🇷 오늘의 원-달러 환율", rate = koRate)
             }
         }
     }

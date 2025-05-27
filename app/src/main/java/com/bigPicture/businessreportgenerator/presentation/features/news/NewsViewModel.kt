@@ -15,30 +15,26 @@ data class Interests(
 )
 
 class NewsViewModel() : ViewModel() {
-    private val _interests = MutableStateFlow(Interests())
-    val interests: StateFlow<Interests> = _interests
+    private val _Exchange = MutableStateFlow(Interests())
+    val exchange: StateFlow<Interests> = _Exchange
 
-    fun fetchInterests() {
+    fun fetchExchange() {
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                val responseKo = RetrofitClient.InterestService.getInterestKo()
-                val responseUs = RetrofitClient.InterestService.getInterestUs()
-
-                if (responseKo.isSuccessful && responseUs.isSuccessful) {
-                    val koData = responseKo.body()
-                    val usData = responseUs.body()
-                    if (koData != null)
-                        _interests.value.ko = koData.data.firstOrNull()?.interestRate ?: 0.0
-                    if (usData != null)
-                        _interests.value.us = usData.data.firstOrNull()?.interestRate ?: 0.0
+                val responseExchange = RetrofitClient.ExchangeService.getExchangeUs()
+                if (responseExchange.isSuccessful) {
+                    val koExData = responseExchange.body()
+                    if (koExData != null) {
+                        // 날짜가 최신인 값을 선택
+                        val latest = koExData.data.maxByOrNull { it.ExchangeDate }
+                        _Exchange.value.ko = latest?.ExchangeRate ?: 0.0
+                    }
                 } else {
                     Log.e("BigPicture", "불러온 환율 정보가 올바르지 않습니다.")
                 }
-
             } catch (e: Exception) {
                 Log.e("BigPicture", "환율 정보 불러오기 실패 : ${e.message}", e)
             }
         }
     }
-
 }
