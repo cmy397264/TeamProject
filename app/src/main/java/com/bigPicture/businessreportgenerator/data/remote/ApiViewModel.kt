@@ -13,7 +13,7 @@ enum class ApiStatus { LOADING, ERROR, DONE }
 
 data class ApiState(
     val isLoading: ApiStatus = ApiStatus.LOADING,
-    val data: String? = null,
+    val message : String = "",
     val error: String? = null
 )
 
@@ -29,10 +29,14 @@ class ApiViewModel() : ViewModel() {
         } catch (e : Exception) {
             Log.d("BigPicture", "ping : ${e.message}")
             return@withContext false
-        } as Boolean
+        }
     }
 
     fun updateApiStatus(status: ApiStatus) {
         _state.value = _state.value.copy(isLoading = status)
+    }
+
+    fun updateApiMessage(message: String) {
+        _state.value = _state.value.copy(message = message)
     }
 }

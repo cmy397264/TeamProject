@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.features.news
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -25,6 +27,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigPicture.businessreportgenerator.presentation.common.AppTopBar
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -59,6 +63,16 @@ fun NewsScreen(modifier: Modifier = Modifier) {
         else -> DummyNewsData.news
     }
 
+    val newsViewModel : NewsViewModel = viewModel()
+    val interestState by newsViewModel.interests.collectAsState()
+    val ko = interestState.ko.toString()
+    val us = interestState.us.toString()
+
+    val listState = rememberLazyListState()
+    val hideExchangeRate by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 100 }
+    }
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = Color(0xFFF8F9FA) // 애플 스타일 배경색 (밝은 회색)
@@ -75,8 +89,15 @@ fun NewsScreen(modifier: Modifier = Modifier) {
             ) {
                 Column {
                     // 상단 헤더 제목
-                    AppTopBar(title = "Today's News")
-
+//                    AppTopBar(title = "Today's News")
+                    //환율 부분
+                    AnimatedVisibility(visible = !hideExchangeRate) {
+                        ExchangeRateCard(
+                            koRate = ko,
+                            usRate = us,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
                     // 탭 영역
                     ScrollableTabRow(
                         selectedTabIndex = selectedTabIndex,
@@ -133,6 +154,7 @@ fun NewsScreen(modifier: Modifier = Modifier) {
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -258,6 +280,64 @@ fun NewsItemCard(
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 20.sp // 줄 간격 추가
             )
+        }
+    }
+}
+
+@Composable
+fun ExchangeRateItem(
+    country: String,
+    rate: String
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = country,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = rate,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = Color(0xFF007AFF)
+        )
+    }
+}
+
+
+@Composable
+fun ExchangeRateCard(
+    koRate: String,
+    usRate: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "오늘의 환율",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color(0xFF1C1C1E)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ExchangeRateItem(country = "🇰🇷 원화", rate = koRate)
+                ExchangeRateItem(country = "🇺🇸 달러", rate = usRate)
+            }
         }
     }
 }
