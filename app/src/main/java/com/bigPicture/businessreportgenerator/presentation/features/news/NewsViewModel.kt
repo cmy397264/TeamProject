@@ -9,14 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-data class Interests(
-    var ko: Double = 0.0,
-    var us: Double = 0.0
+data class Exchange(
+    var ko: Double = 0.0
 )
 
 class NewsViewModel() : ViewModel() {
-    private val _Exchange = MutableStateFlow(Interests())
-    val exchange: StateFlow<Interests> = _Exchange
+    private val _Exchange = MutableStateFlow(Exchange())
+    val exchange: StateFlow<Exchange> = _Exchange
 
     fun fetchExchange() {
         viewModelScope.launch(Dispatchers.Default) {
