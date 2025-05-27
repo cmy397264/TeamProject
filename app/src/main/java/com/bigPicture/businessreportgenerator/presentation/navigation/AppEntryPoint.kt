@@ -15,7 +15,6 @@ import com.bigPicture.businessreportgenerator.ErrorScreen
 import com.bigPicture.businessreportgenerator.data.local.StockViewModel
 import com.bigPicture.businessreportgenerator.data.remote.ApiStatus
 import com.bigPicture.businessreportgenerator.data.remote.ApiViewModel
-import com.bigPicture.businessreportgenerator.data.remote.model.ReportRequest
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
 import com.bigPicture.businessreportgenerator.presentation.features.news.NewsViewModel
 import com.bigPicture.businessreportgenerator.presentation.onboarding.OnboardingScreen
@@ -26,6 +25,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
 import androidx.core.content.edit
+import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import kotlinx.coroutines.delay
 
 /**
