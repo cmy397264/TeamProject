@@ -1,4 +1,4 @@
-package com.bigPicture.businessreportgenerator.data.remote.model
+package com.bigPicture.businessreportgenerator.data.remote.dto
 
 import com.bigPicture.businessreportgenerator.data.domain.ReportType
 import com.bigPicture.businessreportgenerator.data.local.entity.ReportEntity

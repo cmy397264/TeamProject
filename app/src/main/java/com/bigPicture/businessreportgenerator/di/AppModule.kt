@@ -6,4 +6,3 @@ val appModule = module {
     includes(databaseModule)
     includes(boardModule)
 }
-
