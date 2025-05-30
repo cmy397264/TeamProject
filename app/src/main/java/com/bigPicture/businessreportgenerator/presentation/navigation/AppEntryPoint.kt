@@ -53,8 +53,10 @@ fun AppEntryPoint() {
 
         apiViewModel.updateApiMessage("서버와의 연결을 확인하는 중...")
         val connected = apiViewModel.sendPing()
+        Log.d("bigPicture", "connected : $connected")
         if (connected) {
             apiViewModel.updateApiMessage("사용자 정보를 확인하는 중...")
+            Log.d("bigPicture", "onboardingCompleted : $onboardingCompleted")
             if (onboardingCompleted == true) {
                 val today = LocalDate.now().toString()
 
@@ -79,6 +81,8 @@ fun AppEntryPoint() {
                 val interests = prefs.getStringSet("interests", null)?.toList() ?: emptyList()
 
                 apiViewModel.updateApiMessage("토큰을 전송하는 중...")
+                Log.d("bigPicture", "uuid : $uuid")
+
                 apiViewModel.sendToken(FCMToken(
                     uuid = uuid ?: "-1",
                     fcmToken = fcm ?: "-1"
