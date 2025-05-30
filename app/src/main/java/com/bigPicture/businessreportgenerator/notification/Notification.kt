@@ -144,16 +144,17 @@ object NotificationHelper {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        NotificationManagerCompat.from(context).notify(
-            id,
-            NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setAutoCancel(true)
-                .build()
-        )
-    }
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // 필요 시 아이콘 교체
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        NotificationManagerCompat.from(context).notify(id, notification)
+      }
 
     /* ---------- 내부 util ---------- */
     private fun hasPostPermission(context: Context): Boolean =

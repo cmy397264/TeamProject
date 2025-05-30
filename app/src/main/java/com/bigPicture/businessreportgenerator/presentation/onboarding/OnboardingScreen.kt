@@ -74,6 +74,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.notification.NotificationHelper
 import java.time.DayOfWeek
+import java.util.UUID
 
 @Composable
 fun OnboardingScreen(
@@ -110,6 +111,10 @@ fun OnboardingScreen(
                     onBoardingViewModel.setInterestsAndDays(interests, reportDays)
 
                     val sharedPrefs = context.getSharedPreferences("user_prefs", 0)
+                    var uuid = sharedPrefs.getString("uuid", null)
+                    if (uuid == null) {
+                        uuid = UUID.randomUUID().toString()
+                    }
                     sharedPrefs.edit {
                         putString("user_name", state.userData.name)
                         putInt("user_age", state.userData.age)
@@ -118,6 +123,7 @@ fun OnboardingScreen(
                         putStringSet("interests", interests.toSet())
                         putString("report_days", reportDays.joinToString(","))
                         putBoolean("onboarding_completed", true)
+                        putString("uuid", uuid)
                     }
 
                     val riskTolerance = sharedPrefs.getString("risk_tolerance", null).toString()

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
     id("kotlin-kapt")
 }
 
@@ -49,6 +50,7 @@ dependencies {
 
     // Room 라이브러리
     implementation("androidx.room:room-runtime:$roomVersion")
+    implementation(libs.firebase.messaging.ktx)
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
 
