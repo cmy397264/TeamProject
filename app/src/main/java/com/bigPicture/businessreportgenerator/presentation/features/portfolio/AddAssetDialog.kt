@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.AccountBox
@@ -37,6 +38,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,9 +49,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +72,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.bigPicture.businessreportgenerator.data.domain.Asset
 import com.bigPicture.businessreportgenerator.data.domain.AssetType
+import kotlinx.coroutines.delay
+import org.koin.androidx.compose.koinViewModel
 import java.text.DecimalFormat
 import java.util.Calendar
 
@@ -107,6 +114,9 @@ fun AddAssetDialog(
     onDismiss: () -> Unit,
     onAddAsset: (Asset) -> Unit
 ) {
+    val portfolioViewModel: PortfolioViewModel = koinViewModel()
+    val portfolioState by portfolioViewModel.state.collectAsState()
+
     val visibleState = remember {
         MutableTransitionState(false).apply { targetState = true }
     }
@@ -158,7 +168,9 @@ fun AddAssetDialog(
                             visibleState.targetState = false
                             onDismiss()
                         },
-                        onAddAsset = onAddAsset
+                        onAddAsset = onAddAsset,
+                        portfolioViewModel = portfolioViewModel,
+                        portfolioState = portfolioState
                     )
                 }
             }
@@ -170,13 +182,17 @@ fun AddAssetDialog(
 @Composable
 fun ModernAddAssetForm(
     onDismiss: () -> Unit,
-    onAddAsset: (Asset) -> Unit
+    onAddAsset: (Asset) -> Unit,
+    portfolioViewModel: PortfolioViewModel,
+    portfolioState: ModernPortfolioState
 ) {
     var assetName by remember { mutableStateOf("") }
     var selectedAssetType by remember { mutableStateOf<ModernAssetTypeOption?>(null) }
     var showAssetTypeDropdown by remember { mutableStateOf(false) }
     var purchasePriceText by remember { mutableStateOf("") }
     var purchaseDate by remember { mutableStateOf("") }
+    var ticker by remember { mutableStateOf("") }
+    var isTickerValid by remember { mutableStateOf<Boolean?>(null) }
 
     // 추가 필드 (자산 유형별)
     var marketType by remember { mutableStateOf("") }
@@ -184,6 +200,25 @@ fun ModernAddAssetForm(
     var averagePrice by remember { mutableStateOf("") }
 
     val priceFormatter = remember { DecimalFormat("#,###") }
+    val coroutineScope = rememberCoroutineScope()
+
+    // 티커 유효성 검사 (디바운스 적용)
+    LaunchedEffect(ticker, selectedAssetType?.type) {
+        if (selectedAssetType?.type == AssetType.STOCK && ticker.isNotBlank()) {
+            delay(500) // 0.5초 디바운스
+            isTickerValid = portfolioViewModel.validateTicker(ticker.uppercase())
+        } else {
+            isTickerValid = null
+        }
+    }
+
+    // 에러 메시지 클리어
+    LaunchedEffect(portfolioState.tickerValidationError) {
+        if (portfolioState.tickerValidationError != null) {
+            delay(3000)
+            portfolioViewModel.clearTickerValidationError()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -221,6 +256,11 @@ fun ModernAddAssetForm(
                 )
             )
 
+            val canAdd = assetName.isNotEmpty() &&
+                    selectedAssetType != null &&
+                    purchasePriceText.isNotEmpty() &&
+                    (selectedAssetType?.type != AssetType.STOCK || isTickerValid == true)
+
             Button(
                 onClick = {
                     val cleanPriceText = purchasePriceText.replace(",", "")
@@ -257,12 +297,13 @@ fun ModernAddAssetForm(
                         type = selectedAssetType?.type ?: AssetType.STOCK,
                         purchasePrice = priceValue,
                         purchaseDate = dateValue,
-                        details = details
+                        details = details,
+                        ticker = if (selectedAssetType?.type == AssetType.STOCK) ticker.uppercase() else null
                     )
 
                     onAddAsset(asset)
                 },
-                enabled = assetName.isNotEmpty() && selectedAssetType != null && purchasePriceText.isNotEmpty(),
+                enabled = canAdd,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6366F1),
                     contentColor = Color.White,
@@ -272,7 +313,7 @@ fun ModernAddAssetForm(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .shadow(
-                        elevation = if (assetName.isNotEmpty() && selectedAssetType != null && purchasePriceText.isNotEmpty()) 4.dp else 0.dp,
+                        elevation = if (canAdd) 4.dp else 0.dp,
                         shape = RoundedCornerShape(12.dp)
                     )
             ) {
@@ -305,7 +346,13 @@ fun ModernAddAssetForm(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { selectedAssetType = option }
+                        .clickable {
+                            selectedAssetType = option
+                            if (option.type != AssetType.STOCK) {
+                                ticker = ""
+                                isTickerValid = null
+                            }
+                        }
                         .shadow(
                             elevation = if (selectedAssetType == option) 8.dp else 2.dp,
                             shape = RoundedCornerShape(16.dp)
@@ -377,7 +424,7 @@ fun ModernAddAssetForm(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
+                                    imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "선택됨",
                                     tint = Color.White,
                                     modifier = Modifier.size(16.dp)
@@ -391,7 +438,7 @@ fun ModernAddAssetForm(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // 자산 이름 입력
+        // 종목명 입력
         Text(
             text = "종목명",
             style = TextStyle(
@@ -428,6 +475,110 @@ fun ModernAddAssetForm(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // 주식인 경우 티커 입력 필드 추가
+        if (selectedAssetType?.type == AssetType.STOCK) {
+            Text(
+                text = "티커 심볼",
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E293B)
+                ),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            OutlinedTextField(
+                value = ticker,
+                onValueChange = {
+                    ticker = it.uppercase()
+                    isTickerValid = null
+                },
+                placeholder = {
+                    Text(
+                        "예: AAPL, NVDA, 005930",
+                        color = Color(0xFF94A3B8)
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(2.dp, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = when {
+                        portfolioState.isValidatingTicker -> Color(0xFF6366F1)
+                        isTickerValid == true -> Color(0xFF10B981)
+                        isTickerValid == false -> Color(0xFFEF4444)
+                        else -> Color(0xFF6366F1)
+                    },
+                    unfocusedBorderColor = when {
+                        isTickerValid == true -> Color(0xFF10B981)
+                        isTickerValid == false -> Color(0xFFEF4444)
+                        else -> Color(0xFFE2E8F0)
+                    },
+                    cursorColor = Color(0xFF6366F1),
+                    containerColor = Color.White
+                ),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    color = Color(0xFF1E293B)
+                ),
+                trailingIcon = {
+                    when {
+                        portfolioState.isValidatingTicker -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color(0xFF6366F1),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                        isTickerValid == true -> {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "유효한 티커",
+                                tint = Color(0xFF10B981),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        isTickerValid == false -> {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "유효하지 않은 티커",
+                                tint = Color(0xFFEF4444),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                },
+                supportingText = {
+                    when {
+                        portfolioState.tickerValidationError != null -> {
+                            Text(
+                                text = portfolioState.tickerValidationError,
+                                color = Color(0xFFEF4444),
+                                fontSize = 12.sp
+                            )
+                        }
+                        isTickerValid == true -> {
+                            Text(
+                                text = "유효한 티커입니다",
+                                color = Color(0xFF10B981),
+                                fontSize = 12.sp
+                            )
+                        }
+                        ticker.isNotBlank() && !portfolioState.isValidatingTicker && isTickerValid == null -> {
+                            Text(
+                                text = "티커를 확인하는 중...",
+                                color = Color(0xFF64748B),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+        }
 
         // 자산 유형별 추가 필드
         selectedAssetType?.let { assetType ->
