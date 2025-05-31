@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "244049255087",
+    "project_id": "bigpicture-c2798",
+    "storage_bucket": "bigpicture-c2798.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:244049255087:android:7157fc87637232429a525a",
+        "android_client_info": {
+          "package_name": "com.bigPicture.businessreportgenerator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbm4iiM_1s1jZXs3k6JsNSIcDI84kfgdc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

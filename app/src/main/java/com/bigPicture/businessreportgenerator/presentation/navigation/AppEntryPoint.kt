@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.navigation
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,10 +17,12 @@ import com.bigPicture.businessreportgenerator.ErrorScreen
 import com.bigPicture.businessreportgenerator.data.local.StockViewModel
 import com.bigPicture.businessreportgenerator.data.remote.ApiStatus
 import com.bigPicture.businessreportgenerator.data.remote.ApiViewModel
+import com.bigPicture.businessreportgenerator.data.remote.api.FCMToken
 import com.bigPicture.businessreportgenerator.data.remote.dto.ReportRequest
 import com.bigPicture.businessreportgenerator.presentation.features.analyst.AnalystViewmodel
 import com.bigPicture.businessreportgenerator.presentation.features.news.NewsViewModel
 import com.bigPicture.businessreportgenerator.presentation.onboarding.OnboardingScreen
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -49,17 +52,43 @@ fun AppEntryPoint() {
         onboardingCompleted = prefs.getBoolean("onboarding_completed", false)
 
         apiViewModel.updateApiMessage("서버와의 연결을 확인하는 중...")
-        // val connected = apiViewModel.sendPing()
-        val connected = true // 테스트용
+        val connected = apiViewModel.sendPing()
+        Log.d("bigPicture", "connected : $connected")
         if (connected) {
             apiViewModel.updateApiMessage("사용자 정보를 확인하는 중...")
+            Log.d("bigPicture", "onboardingCompleted : $onboardingCompleted")
             if (onboardingCompleted == true) {
                 val today = LocalDate.now().toString()
+
+                val uuid = prefs.getString("uuid", null)
+                var fcm = prefs.getString("fcm_token", null)
+                if (fcm == null) {
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener{
+                        task ->
+                        if (task.isSuccessful) {
+                            fcm = task.result
+                            prefs.edit {
+                                putString("fcm_token", fcm)
+                            }
+                            Log.d("bigPicture", "fcm token : $fcm.toString()")
+                        } else
+                            Log.d("bigPicture", "FCM 토큰 가져오기 실패")
+                    }
+                }
+
                 val riskTolerance = prefs.getString("risk_tolerance", null).toString()
                 val reportComplexity = prefs.getString("report_complexity", null).toString()
                 val interests = prefs.getStringSet("interests", null)?.toList() ?: emptyList()
 
+                apiViewModel.updateApiMessage("토큰을 전송하는 중...")
+                Log.d("bigPicture", "uuid : $uuid")
+
+                apiViewModel.sendToken(FCMToken(
+                    uuid = uuid ?: "-1",
+                    fcmToken = fcm ?: "-1"
+                ))
                 apiViewModel.updateApiMessage("레포트 정보를 갱신하는 중...")
+
                 stockViewModel.getLatestStocksGroupByDate().firstOrNull()?.let { stocks ->
                     val filtered = stocks.filter { it.date != today }
                     val deferred = filtered.map { stock ->

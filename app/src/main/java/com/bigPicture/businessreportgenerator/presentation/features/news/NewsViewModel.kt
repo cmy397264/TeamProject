@@ -28,6 +28,7 @@ class NewsViewModel() : ViewModel() {
                         val latest = koExData.data.maxByOrNull { it.ExchangeDate }
                         _Exchange.value.ko = latest?.ExchangeRate ?: 0.0
                     }
+                    Log.d("BigPicture", "환율 정보 불러오기 성공")
                 } else {
                     Log.e("BigPicture", "불러온 환율 정보가 올바르지 않습니다.")
                 }
