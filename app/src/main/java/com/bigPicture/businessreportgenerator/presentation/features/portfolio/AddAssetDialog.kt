@@ -481,7 +481,7 @@ fun AddAssetDialog(
                                     TextField(
                                         value = purchasePricePerShare,
                                         onValueChange = { purchasePricePerShare = it },
-                                        label = "개별 주가 (${market.currency.symbol})",
+                                        label = "매입 주가 (${market.currency.symbol})",
                                         placeholder = when (market.currency) {
                                             Currency.KRW -> "예: 50,000"
                                             Currency.USD -> "예: 150.50"
