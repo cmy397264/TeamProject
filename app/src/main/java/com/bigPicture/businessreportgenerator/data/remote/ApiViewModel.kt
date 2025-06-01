@@ -15,6 +15,7 @@ enum class ApiStatus { LOADING, ERROR, DONE }
 data class ApiState(
     val isLoading: ApiStatus = ApiStatus.LOADING,
     val message : String = "",
+    val subMessage : String = "",
     val error: String? = null
 )
 
