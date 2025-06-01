@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.features.portfolio
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.ui.graphics.Brush
@@ -9,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.bigPicture.businessreportgenerator.data.domain.Asset
 import com.bigPicture.businessreportgenerator.data.domain.AssetType
 import com.bigPicture.businessreportgenerator.data.domain.ExchangeRate
+import com.bigPicture.businessreportgenerator.data.domain.StockHistoryItem
 import com.bigPicture.businessreportgenerator.data.local.repository.AssetRepository
 import com.bigPicture.businessreportgenerator.data.remote.api.FinanceApiService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -314,5 +316,19 @@ class PortfolioViewModel(
 
     fun refreshInvestmentTip() {
         setRandomInvestmentTip()
+    }
+
+    suspend fun getStockHistory(ticker: String): List<StockHistoryItem> {
+        return try {
+            val response = financeApiService.getStockHistory(ticker)
+            if (response.status == "OK") {
+                response.data
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("PortfolioViewModel", "주식 히스토리 조회 실패: ${e.message}")
+            emptyList()
+        }
     }
 }
