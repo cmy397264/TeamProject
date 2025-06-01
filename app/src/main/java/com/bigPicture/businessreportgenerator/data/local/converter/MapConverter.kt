@@ -15,6 +15,6 @@ class MapConverter {
     @TypeConverter
     fun toMap(value: String): Map<String, String> {
         val mapType = object : TypeToken<Map<String, String>>() {}.type
-        return gson.fromJson(value, mapType)
+        return gson.fromJson(value, mapType) ?: emptyMap()
     }
 }

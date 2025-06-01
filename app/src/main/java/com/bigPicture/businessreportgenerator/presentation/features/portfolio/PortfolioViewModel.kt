@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bigPicture.businessreportgenerator.data.domain.Asset
 import com.bigPicture.businessreportgenerator.data.domain.AssetType
+import com.bigPicture.businessreportgenerator.data.domain.ExchangeRate
 import com.bigPicture.businessreportgenerator.data.local.repository.AssetRepository
 import com.bigPicture.businessreportgenerator.data.remote.api.FinanceApiService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+
+data class TickerValidationResult(
+    val isValid: Boolean,
+    val actualTicker: String? = null,
+    val companyName: String? = null,
+    val errorMessage: String? = null
+)
 
 data class ModernPortfolioState(
     val assets: List<Asset> = emptyList(),
@@ -27,9 +35,9 @@ data class ModernPortfolioState(
     val totalReturnPercentage: Double = 0.0,
     val isLoading: Boolean = false,
     val currentInvestmentTip: InvestmentTip? = null,
-    // 새로 추가된 상태들
+    // 티커 검증 관련 상태들
     val isValidatingTicker: Boolean = false,
-    val tickerValidationError: String? = null,
+    val tickerValidationResult: TickerValidationResult? = null,
     val isLoadingPrices: Boolean = false
 )
 
@@ -40,6 +48,9 @@ class PortfolioViewModel(
 
     private val _state = MutableStateFlow(ModernPortfolioState())
     val state: StateFlow<ModernPortfolioState> = _state.asStateFlow()
+
+    // 현재 환율 (실제로는 API에서 가져와야 함)
+    private val currentExchangeRate = ExchangeRate(1300.0)
 
     init {
         loadAssets()
@@ -55,7 +66,9 @@ class PortfolioViewModel(
                 val updatedAssets = updateStockPrices(assets)
 
                 val totalPurchaseValue = updatedAssets.sumOf { it.purchasePrice }
-                val totalCurrentValue = updatedAssets.sumOf { it.getCurrentValue() ?: it.purchasePrice }
+                val totalCurrentValue = updatedAssets.sumOf {
+                    it.getCurrentValueInKRW(currentExchangeRate) ?: it.purchasePrice
+                }
                 val totalReturn = totalCurrentValue - totalPurchaseValue
                 val totalReturnPercentage = if (totalPurchaseValue > 0) {
                     (totalReturn / totalPurchaseValue) * 100
@@ -100,34 +113,58 @@ class PortfolioViewModel(
         }
     }
 
-    // 티커 유효성 검사
-    suspend fun validateTicker(ticker: String): Boolean {
-        _state.update { it.copy(isValidatingTicker = true, tickerValidationError = null) }
+    // 개선된 티커 유효성 검사
+    fun validateTicker(ticker: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isValidatingTicker = true, tickerValidationResult = null) }
 
-        return try {
-            val response = financeApiService.checkTicker(ticker)
-            val isValid = response.status == "OK" && response.data
+            try {
+                val response = financeApiService.checkTicker(ticker)
 
-            if (!isValid) {
+                if (response.status == "OK" && response.data == true) {
+                    // API에서 단순히 true/false만 반환하므로 입력된 티커가 유효함을 의미
+                    val result = TickerValidationResult(
+                        isValid = true,
+                        actualTicker = ticker, // 입력된 티커가 유효함
+                        companyName = ticker // 회사명 정보가 없으므로 티커를 표시
+                    )
+                    _state.update {
+                        it.copy(
+                            isValidatingTicker = false,
+                            tickerValidationResult = result
+                        )
+                    }
+                } else {
+                    val result = TickerValidationResult(
+                        isValid = false,
+                        errorMessage = "유효하지 않은 티커입니다: $ticker"
+                    )
+                    _state.update {
+                        it.copy(
+                            isValidatingTicker = false,
+                            tickerValidationResult = result
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                val result = TickerValidationResult(
+                    isValid = false,
+                    errorMessage = "티커 검증 중 오류가 발생했습니다"
+                )
                 _state.update {
                     it.copy(
                         isValidatingTicker = false,
-                        tickerValidationError = "유효하지 않은 티커입니다: $ticker"
+                        tickerValidationResult = result
                     )
                 }
-            } else {
-                _state.update { it.copy(isValidatingTicker = false) }
             }
+        }
+    }
 
-            isValid
-        } catch (e: Exception) {
-            _state.update {
-                it.copy(
-                    isValidatingTicker = false,
-                    tickerValidationError = "티커 검증 중 오류가 발생했습니다: ${e.message}"
-                )
-            }
-            false
+    // 티커 검증 상태 초기화
+    fun clearTickerValidation() {
+        _state.update {
+            it.copy(tickerValidationResult = null)
         }
     }
 
@@ -216,12 +253,11 @@ class PortfolioViewModel(
         }
     }
 
-
     fun showAddAssetDialog() {
         _state.update {
             it.copy(
                 isAddAssetDialogVisible = true,
-                tickerValidationError = null
+                tickerValidationResult = null
             )
         }
     }
@@ -230,13 +266,14 @@ class PortfolioViewModel(
         _state.update {
             it.copy(
                 isAddAssetDialogVisible = false,
-                tickerValidationError = null
+                tickerValidationResult = null
             )
         }
     }
 
+    // 기존 메서드는 호환성을 위해 유지
     fun clearTickerValidationError() {
-        _state.update { it.copy(tickerValidationError = null) }
+        clearTickerValidation()
     }
 
     fun showSamplePortfolioDialog() {
