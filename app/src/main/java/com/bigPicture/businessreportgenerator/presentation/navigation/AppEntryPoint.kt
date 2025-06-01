@@ -92,6 +92,7 @@ fun AppEntryPoint() {
                     it.toInt()
                 }
                 Log.d("bigPicture", "reportList : $reportDayList")
+
                 if (reportDayList?.contains(todayWeek) == true) {
                     Log.d("bigPicture", "today is in reportList : ${reportDayList.contains(todayWeek)}")
                     apiViewModel.updateApiMessage("레포트 정보를 갱신하는 중...")
