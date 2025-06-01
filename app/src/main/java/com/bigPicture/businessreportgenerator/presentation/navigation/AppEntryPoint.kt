@@ -2,7 +2,6 @@ package com.bigPicture.businessreportgenerator.presentation.navigation
 
 import android.content.SharedPreferences
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +25,7 @@ import com.bigPicture.businessreportgenerator.presentation.features.news.NewsVie
 import com.bigPicture.businessreportgenerator.presentation.onboarding.OnboardingScreen
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -35,6 +35,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
+import java.time.temporal.WeekFields
 
 /**
  * 앱 진입점 화면 - 온보딩 또는 메인 화면 표시
@@ -83,17 +84,23 @@ fun AppEntryPoint() {
                 launch(Dispatchers.IO) {
                     val today = LocalDate.now()
                     val todayWeek = today.dayOfWeek.value - 1
+
+                    val weekOfYear = today.get(WeekFields.ISO.weekOfWeekBasedYear())
+                    val year = today.year
+                    val reportKey = "report_requested_${year}_$weekOfYear"
+
+                    val alreadyRequested = prefs.getBoolean(reportKey, false)
+
                     val reportDayList = prefs.getString("report_days", null)
                         ?.split(",")?.mapNotNull { it.toInt() }
-                    Log.d("bigPicture", "reportList : $reportDayList")
+                    Log.d("bigPicture", "reportList : $reportDayList, today : $todayWeek")
+                    Log.d("bigPicture", "alreadyRequested : $alreadyRequested")
 
-                    if (reportDayList?.contains(todayWeek) == true) {
+                    if (reportDayList?.contains(todayWeek) == true && alreadyRequested == false ) {
                         Log.d(
                             "bigPicture",
                             "today is in reportList : ${reportDayList.contains(todayWeek)}"
                         )
-                        apiViewModel.updateApiMessage("레포트 정보를 갱신하는 중...")
-
                         val date = today.toString()
                         val riskTolerance = prefs.getString("risk_tolerance", "") ?: ""
                         val reportComplexity = prefs.getString("report_complexity", "") ?: ""
@@ -116,9 +123,8 @@ fun AppEntryPoint() {
                                     stockViewModel.updateStockDate(stock.stockName, date)
                                 }
                             }
-
                             deferred.awaitAll()
-                            Toast.makeText(context, "레포트 갱신 완료", Toast.LENGTH_SHORT).show()
+                            prefs.edit() { putBoolean(reportKey, true) }
                         }
                     }
                 }
@@ -162,6 +168,7 @@ fun AppEntryPoint() {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 suspend fun getFcmTokenSuspend(prefs: SharedPreferences): String =
     suspendCancellableCoroutine { continuation ->
         FirebaseMessaging.getInstance().token
