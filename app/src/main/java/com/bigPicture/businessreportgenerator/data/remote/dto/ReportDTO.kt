@@ -34,6 +34,6 @@ class ReportResponse {
         content = (data?.economyReport + "\n" + data?.stockReport),
         summary = data?.summaryReport ?: "",
         date    = System.currentTimeMillis(),
-        type    = ReportType.CUSTOM.toString()          // ★ 기본값 넣기 (또는 서버 값 매핑)
+        type    = ReportType.CUSTOM.toString()
     )
 }
