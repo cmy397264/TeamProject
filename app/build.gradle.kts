@@ -50,7 +50,6 @@ dependencies {
 
     // Room 라이브러리
     implementation("androidx.room:room-runtime:$roomVersion")
-    implementation(libs.firebase.messaging.ktx)
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
 
@@ -78,6 +77,9 @@ dependencies {
     // Jetpack Navigation for Compose
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.vision.internal.vkp)
+
+    // FCM
+    implementation(libs.firebase.messaging.ktx)
 
     // 테스트
     testImplementation(libs.junit)

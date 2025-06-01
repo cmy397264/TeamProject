@@ -54,17 +54,16 @@ fun AppEntryPoint() {
         apiViewModel.updateApiMessage("서버와의 연결을 확인하는 중...")
         val connected = apiViewModel.sendPing()
         Log.d("bigPicture", "connected : $connected")
+
         if (connected) {
             apiViewModel.updateApiMessage("사용자 정보를 확인하는 중...")
             Log.d("bigPicture", "onboardingCompleted : $onboardingCompleted")
-            if (onboardingCompleted == true) {
-                val today = LocalDate.now().toString()
 
+            if (onboardingCompleted == true) {
                 val uuid = prefs.getString("uuid", null)
                 var fcm = prefs.getString("fcm_token", null)
                 if (fcm == null) {
-                    FirebaseMessaging.getInstance().token.addOnCompleteListener{
-                        task ->
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             fcm = task.result
                             prefs.edit {
@@ -75,38 +74,54 @@ fun AppEntryPoint() {
                             Log.d("bigPicture", "FCM 토큰 가져오기 실패")
                     }
                 }
-
-                val riskTolerance = prefs.getString("risk_tolerance", null).toString()
-                val reportComplexity = prefs.getString("report_complexity", null).toString()
-                val interests = prefs.getStringSet("interests", null)?.toList() ?: emptyList()
-
                 apiViewModel.updateApiMessage("토큰을 전송하는 중...")
                 Log.d("bigPicture", "uuid : $uuid")
+                apiViewModel.sendToken(
+                    FCMToken(
+                        uuid = uuid ?: "-1",
+                        fcmToken = fcm ?: "-1"
+                    )
+                )
 
-                apiViewModel.sendToken(FCMToken(
-                    uuid = uuid ?: "-1",
-                    fcmToken = fcm ?: "-1"
-                ))
-                apiViewModel.updateApiMessage("레포트 정보를 갱신하는 중...")
+                val today = LocalDate.now()
+                val todayWeek = today.dayOfWeek.value - 1
+                val reportDays = prefs.getString("report_days", null)
+                Log.d("bigPicture", "today : $todayWeek")
+                Log.d("bigPicture", "reportDays : $reportDays")
+                val reportDayList = reportDays?.split(",")?.map {
+                    it.toInt()
+                }
+                Log.d("bigPicture", "reportList : $reportDayList")
 
-                stockViewModel.getLatestStocksGroupByDate().firstOrNull()?.let { stocks ->
-                    val filtered = stocks.filter { it.date != today }
-                    val deferred = filtered.map { stock ->
-                        val request = ReportRequest(
-                            reportType = "stock",
-                            stockName = stock.stockName,
-                            riskTolerance = riskTolerance,
-                            reportDifficultyLevel = reportComplexity,
-                            interestAreas = interests
-                        )
-                        coroutineScope.async {
-                            analystViewModel.requestReport(request)
-                            stockViewModel.updateStockDate(stock.stockName, today)
+                if (reportDayList?.contains(todayWeek) == true) {
+                    Log.d("bigPicture", "today is in reportList : ${reportDayList.contains(todayWeek)}")
+                    apiViewModel.updateApiMessage("레포트 정보를 갱신하는 중...")
+
+                    val date = today.toString()
+                    val riskTolerance = prefs.getString("risk_tolerance", null).toString()
+                    val reportComplexity = prefs.getString("report_complexity", null).toString()
+                    val interests = prefs.getStringSet("interests", null)?.toList() ?: emptyList()
+
+                    stockViewModel.getLatestStocksGroupByDate().firstOrNull()?.let { stocks ->
+                        val filtered = stocks.filter { it.date != date }
+                        val deferred = filtered.map { stock ->
+                            val request = ReportRequest(
+                                reportType = "stock",
+                                stockName = stock.stockName,
+                                riskTolerance = riskTolerance,
+                                reportDifficultyLevel = reportComplexity,
+                                interestAreas = interests
+                            )
+                            coroutineScope.async {
+                                analystViewModel.requestReport(request)
+                                stockViewModel.updateStockDate(stock.stockName, date)
+                            }
                         }
+                        deferred.awaitAll()
                     }
-                    deferred.awaitAll()
                 }
             }
+
             apiViewModel.updateApiMessage("환율 불러오는 중...")
             newsViewModel.fetchExchange()
             apiViewModel.updateApiMessage("로딩 완료")
