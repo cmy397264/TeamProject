@@ -105,19 +105,4 @@ data class Asset(
         }
     }
 
-    val Asset.purchasePricePerShare: Double?
-        get() = details["purchasePricePerShare"]?.toDoubleOrNull()
-
-    val Asset.shares: Double?
-        get() = details["shares"]?.toDoubleOrNull()
-
-    val Asset.market: Market?
-        get() = details["market"]?.let { marketName ->
-            try {
-                Market.valueOf(marketName)
-            } catch (e: Exception) {
-                null
-            }
-        }
-
 }

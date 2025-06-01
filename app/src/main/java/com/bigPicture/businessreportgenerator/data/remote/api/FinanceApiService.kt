@@ -48,7 +48,7 @@ interface FinanceApiService {
     @GET("/api/v1/stocks/today")
     suspend fun getTodayStockPrice(@Query("stockName") stockName: String): StockPriceResponse
 
-    @GET("api/v1/stocks/all")
+    @GET("/api/v1/stocks/all")
     suspend fun getStockHistory(
         @Query("stockName") stockName: String
     ): StockHistoryResponse
