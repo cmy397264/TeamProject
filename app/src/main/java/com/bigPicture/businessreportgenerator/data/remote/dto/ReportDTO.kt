@@ -5,8 +5,10 @@ import com.bigPicture.businessreportgenerator.data.local.entity.ReportEntity
 import com.google.gson.annotations.SerializedName
 
 data class Data(
-    val summary : String,
-    val insight : String
+    val title : String,
+    val summaryReport : String,
+    val economyReport : String,
+    val stockReport : String
 )
 
 data class ReportRequest(
@@ -28,10 +30,10 @@ class ReportResponse {
     }
 
     fun toDomain(): ReportEntity = ReportEntity(
-        title   = data?.insight?.take(40) ?: "",
-        content = data?.insight ?: "",
-        summary = data?.summary ?: "",
+        title   = data?.title ?: "",
+        content = (data?.economyReport + "\n" + data?.stockReport),
+        summary = data?.summaryReport ?: "",
         date    = System.currentTimeMillis(),
-        type    = ReportType.CUSTOM.toString()          // ★ 기본값 넣기 (또는 서버 값 매핑)
+        type    = ReportType.CUSTOM.toString()
     )
 }
