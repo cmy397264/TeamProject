@@ -136,7 +136,6 @@ val InvestmentTips = listOf(
         )
     )
 )
-
 @Composable
 fun PortfolioScreen(
     modifier: Modifier = Modifier
@@ -145,6 +144,9 @@ fun PortfolioScreen(
     val portfolioState by portfolioViewModel.state.collectAsState()
     val stockViewModel: StockViewModel = koinViewModel()
     val scrollState = rememberScrollState()
+
+    // 분석 화면 표시 상태 추가
+    var showAnalysisScreen by remember { mutableStateOf(false) }
 
     // 더욱 아름다운 그라데이션 컬러 팔레트
     val gorgeousColors = listOf(
@@ -168,80 +170,90 @@ fun PortfolioScreen(
         )
     }
 
-    // 매혹적인 배경 그라데이션
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFF7FAFF),
-                        Color(0xFFFFFFFF),
-                        Color(0xFFF0F9FF)
+    // 분석 화면이 표시되면 분석 화면을 보여주고, 아니면 기존 포트폴리오 화면 표시
+    if (showAnalysisScreen) {
+        PortfolioAnalysisScreen(
+            assets = portfolioState.assets,
+            onBackPressed = { showAnalysisScreen = false }, // 뒤로가기 시 원래 화면으로
+            modifier = modifier
+        )
+    } else {
+        // 기존 포트폴리오 화면
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFFF7FAFF),
+                            Color(0xFFFFFFFF),
+                            Color(0xFFF0F9FF)
+                        )
                     )
                 )
-            )
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 글래스모피즘 네비게이션 바
-            GlassmorphismNavigationBar(
-                isRefreshing = portfolioState.isLoadingPrices,
-                onRefresh = { portfolioViewModel.refreshStockPrices() },
-                hasStocks = portfolioState.assets.any { it.type == AssetType.STOCK }
-            )
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // 글래스모피즘 네비게이션 바
+                GlassmorphismNavigationBar(
+                    isRefreshing = portfolioState.isLoadingPrices,
+                    onRefresh = { portfolioViewModel.refreshStockPrices() },
+                    hasStocks = portfolioState.assets.any { it.type == AssetType.STOCK }
+                )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(bottom = 32.dp)
-            ) {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(1000, easing = FastOutSlowInEasing)) +
-                            slideInVertically(tween(1000, easing = LinearOutSlowInEasing)) { it / 4 }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 32.dp)
                 ) {
-                    if (portfolioState.assets.isEmpty()) {
-                        EmptyState(
-                            onAddClick = { portfolioViewModel.showAddAssetDialog() },
-                            onShowSampleClick = { portfolioViewModel.showSamplePortfolioDialog() }
-                        )
-                    } else {
-                        MesmerizingPortfolioContent(
-                            portfolioState = portfolioState,
-                            pieChartData = pieChartData,
-                            exchangeRate = exchangeRate,
-                            onAddClick = { portfolioViewModel.showAddAssetDialog() }
-                        )
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(tween(1000, easing = FastOutSlowInEasing)) +
+                                slideInVertically(tween(1000, easing = LinearOutSlowInEasing)) { it / 4 }
+                    ) {
+                        if (portfolioState.assets.isEmpty()) {
+                            EmptyState(
+                                onAddClick = { portfolioViewModel.showAddAssetDialog() },
+                                onShowSampleClick = { portfolioViewModel.showSamplePortfolioDialog() }
+                            )
+                        } else {
+                            MesmerizingPortfolioContent(
+                                portfolioState = portfolioState,
+                                pieChartData = pieChartData,
+                                exchangeRate = exchangeRate,
+                                onAddClick = { portfolioViewModel.showAddAssetDialog() },
+                                onAnalysisClick = { showAnalysisScreen = true } // 분석 버튼 클릭 시 분석 화면 표시
+                            )
+                        }
                     }
                 }
-            }
 
-            // 다이얼로그들
-            if (portfolioState.isAddAssetDialogVisible) {
-                AddAssetDialog(
-                    onDismiss = { portfolioViewModel.hideAddAssetDialog() },
-                    onAddAsset = {
-                        portfolioViewModel.addAsset(it)
-                        if (it.type == AssetType.STOCK) {
-                            val market = it.market?.name
-                            val stockType = if (market == "KOSPI" || market == "KOSDAQ") "korea" else "us"
-                            stockViewModel.registerStock(stockType, it.name)
+                // 다이얼로그들
+                if (portfolioState.isAddAssetDialogVisible) {
+                    AddAssetDialog(
+                        onDismiss = { portfolioViewModel.hideAddAssetDialog() },
+                        onAddAsset = {
+                            portfolioViewModel.addAsset(it)
+                            if (it.type == AssetType.STOCK) {
+                                val market = it.market?.name
+                                val stockType = if (market == "KOSPI" || market == "KOSDAQ") "korea" else "us"
+                                stockViewModel.registerStock(stockType, it.name)
+                            }
+                        },
+                        currentExchangeRate = exchangeRate
+                    )
+                }
+
+                if (portfolioState.isSamplePortfolioDialogVisible) {
+                    SamplePortfolioDialog(
+                        sampleAssets = portfolioState.sampleAssets,
+                        onDismiss = { portfolioViewModel.hideSamplePortfolioDialog() },
+                        onLoad = {
+                            portfolioViewModel.loadSamplePortfolio()
+                            portfolioViewModel.hideSamplePortfolioDialog()
                         }
-                    },
-                    currentExchangeRate = exchangeRate
-                )
-            }
-
-            if (portfolioState.isSamplePortfolioDialogVisible) {
-                SamplePortfolioDialog(
-                    sampleAssets = portfolioState.sampleAssets,
-                    onDismiss = { portfolioViewModel.hideSamplePortfolioDialog() },
-                    onLoad = {
-                        portfolioViewModel.loadSamplePortfolio()
-                        portfolioViewModel.hideSamplePortfolioDialog()
-                    }
-                )
+                    )
+                }
             }
         }
     }
@@ -309,13 +321,13 @@ fun GlassmorphismNavigationBar(
         }
     }
 }
-
 @Composable
 fun MesmerizingPortfolioContent(
     portfolioState: ModernPortfolioState,
     pieChartData: List<PieChartData>,
     exchangeRate: ExchangeRate,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onAnalysisClick: () -> Unit // 분석 클릭 콜백 추가
 ) {
     val animatedTotalValue by animateFloatAsState(
         targetValue = portfolioState.totalPortfolioValue.toFloat(),
@@ -351,7 +363,8 @@ fun MesmerizingPortfolioContent(
             returnValue = animatedReturnValue.toDouble(),
             returnPercentage = portfolioState.totalReturnPercentage,
             formatter = formatter,
-            onAddClick = onAddClick
+            onAddClick = onAddClick,
+            onAnalysisClick = onAnalysisClick // 분석 클릭 콜백 전달
         )
 
         // 드림라이크 차트 카드
@@ -372,13 +385,15 @@ fun MesmerizingPortfolioContent(
     }
 }
 
+
 @Composable
 fun EnchantingMainAssetCard(
     totalValue: Double,
     returnValue: Double,
     returnPercentage: Double,
     formatter: NumberFormat,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onAnalysisClick: () -> Unit // 분석 클릭 콜백 추가
 ) {
     val isProfit = returnValue >= 0
 
@@ -523,7 +538,7 @@ fun EnchantingMainAssetCard(
                     EnchantingQuickAction(
                         icon = Icons.Rounded.Edit,
                         label = "분석",
-                        onClick = {}
+                        onClick = onAnalysisClick // 여기에 분석 클릭 콜백 연결!
                     )
                     EnchantingQuickAction(
                         icon = Icons.Rounded.Star,
@@ -540,6 +555,7 @@ fun EnchantingMainAssetCard(
         }
     }
 }
+
 
 @Composable
 fun EnchantingQuickAction(

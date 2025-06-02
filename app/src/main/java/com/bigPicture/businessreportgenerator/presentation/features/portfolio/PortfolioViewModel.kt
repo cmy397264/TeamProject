@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.presentation.features.portfolio
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.ui.graphics.Brush
@@ -9,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.bigPicture.businessreportgenerator.data.domain.Asset
 import com.bigPicture.businessreportgenerator.data.domain.AssetType
 import com.bigPicture.businessreportgenerator.data.domain.ExchangeRate
+import com.bigPicture.businessreportgenerator.data.domain.StockHistoryItem
 import com.bigPicture.businessreportgenerator.data.local.repository.AssetRepository
 import com.bigPicture.businessreportgenerator.data.remote.api.FinanceApiService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -314,5 +316,29 @@ class PortfolioViewModel(
 
     fun refreshInvestmentTip() {
         setRandomInvestmentTip()
+    }
+
+    suspend fun getStockHistory(ticker: String): List<StockHistoryItem> {
+        return try {
+
+            val response = financeApiService.getStockHistory(ticker)
+
+            Log.d("PortfolioViewModel", "API 응답 받음: status=${response.status}")
+            Log.d("PortfolioViewModel", "API 응답 코드: ${response.code}")
+            Log.d("PortfolioViewModel", "데이터 개수: ${response.data.size}")
+
+            if (response.status == "OK") {
+                Log.d("PortfolioViewModel", "성공: ${response.data.size}개 데이터 반환")
+                response.data
+            } else {
+                Log.w("PortfolioViewModel", "API 상태 실패: ${response.status}")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("PortfolioViewModel", "예외 타입: ${e.javaClass.simpleName}")
+            Log.e("PortfolioViewModel", "예외 메시지: ${e.message}")
+            Log.e("PortfolioViewModel", "스택 트레이스:", e)
+            emptyList()
+        }
     }
 }

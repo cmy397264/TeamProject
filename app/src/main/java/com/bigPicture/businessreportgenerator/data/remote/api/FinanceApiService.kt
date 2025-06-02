@@ -1,5 +1,6 @@
 package com.bigPicture.businessreportgenerator.data.remote.api
 
+import com.bigPicture.businessreportgenerator.data.domain.StockHistoryResponse
 import com.bigPicture.businessreportgenerator.data.remote.domain.graph.ApiResponse
 import com.bigPicture.businessreportgenerator.data.remote.domain.graph.ExchangeItem
 import com.bigPicture.businessreportgenerator.data.remote.domain.graph.InterestItem
@@ -46,5 +47,10 @@ interface FinanceApiService {
 
     @GET("/api/v1/stocks/today")
     suspend fun getTodayStockPrice(@Query("stockName") stockName: String): StockPriceResponse
+
+    @GET("/api/v1/stocks/all")
+    suspend fun getStockHistory(
+        @Query("stockName") stockName: String
+    ): StockHistoryResponse
 
 }

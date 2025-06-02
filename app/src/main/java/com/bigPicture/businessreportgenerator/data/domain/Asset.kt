@@ -104,4 +104,5 @@ data class Asset(
             }
         }
     }
+
 }
